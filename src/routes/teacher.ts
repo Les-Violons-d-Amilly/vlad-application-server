@@ -24,7 +24,7 @@ router.get("/", async (req, res) => {
 
 // getting a teacher by id
 router.get("/:id", getTeacher, async (req, res) => {
-  res.send((res as any).teacher.name);
+  res.json((res as any).teacher);
   //problem with the res.teacher.name, Property 'teacher' does not exist on type
   //(res as any) is a temporary solution.
 });
@@ -44,10 +44,31 @@ router.post("/", async (req, res) => {
 });
 
 // updating a teacher
-router.patch("/:id", async (req, res) => {});
+router.patch("/:id", getTeacher, async (req, res) => {
+  if (req.body.name != null) {
+    (res as any).teacher.name = req.body.name;
+  }
+  if (req.body.email != null) {
+    (res as any).teacher.email = req.body.email;
+  }
+  try {
+    const updatedTeacher = await (res as any).teacher.save();
+    res.json(updatedTeacher);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
 // deleting a teacher
-router.delete("/:id", async (req, res) => {});
+router.delete("/:id", getTeacher, async (req, res) => {
+  try {
+    await (res as any).teacher.deleteOne();
+    //(res as any) is a temporary solution.
+    res.json({ message: "Deleted teacher" });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 async function getTeacher(req: any, res: any, next: any) {
   let teacher;
