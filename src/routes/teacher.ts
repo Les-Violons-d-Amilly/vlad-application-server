@@ -6,8 +6,8 @@ const teacherModel = require("../model/teacherModel");
 
 // set up rate limiter: maximum of 100 requests per 15 minutes
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
 });
 
 router.use(limiter);
@@ -24,8 +24,9 @@ router.get("/", async (req, res) => {
 
 // getting a teacher by id
 router.get("/:id", getTeacher, async (req, res) => {
-  res.send(res.teacher.name);
+  res.send((res as any).teacher.name);
   //problem with the res.teacher.name, Property 'teacher' does not exist on type
+  //(res as any) is a temporary solution.
 });
 
 // creating a teacher
