@@ -32,7 +32,8 @@ router.get("/:id", getTeacher, async (req, res) => {
 // creating a teacher
 router.post("/", async (req, res) => {
   const teacher = new teacherModel({
-    name: req.body.name,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
     email: req.body.email,
   });
   try {
@@ -45,8 +46,11 @@ router.post("/", async (req, res) => {
 
 // updating a teacher
 router.patch("/:id", getTeacher, async (req, res) => {
-  if (req.body.name != null) {
-    (res as any).teacher.name = req.body.name;
+  if (req.body.firstName != null) {
+    (res as any).teacher.firstName = req.body.firstName;
+  }
+  if (req.body.lastName != null) {
+    (res as any).teacher.lastName = req.body.lastName;
   }
   if (req.body.email != null) {
     (res as any).teacher.email = req.body.email;
