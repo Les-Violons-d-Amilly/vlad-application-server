@@ -2,19 +2,19 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface Exercise extends Document {
   name: string;
+  globalScore?: number;
   scores: {
-    globalScore: number;
-    scoreTable: {
-      [score: string]: number;
+    subPartMap: {
+      [name: string]: number;
     };
   };
 }
 
 const ExerciseSchema: Schema = new Schema({
   name: { type: String, required: true },
+  globalScore: { type: Number, required: false },
   scores: {
-    globalScore: { type: Number, required: false },
-    scoreTable: {
+    subPartMap: {
       type: Map,
       of: Number,
       required: false,

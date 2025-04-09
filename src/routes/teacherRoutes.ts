@@ -68,7 +68,7 @@ router.patch("/:id", async (req: Request, res: Response): Promise<any> => {
     }
     const updatedTeacher = await TeacherModel.findByIdAndUpdate(
       req.params.id,
-      value, // use this instead of req.body
+      value, // instead of req.body
       { new: true, runValidators: true }
     );
     if (!updatedTeacher) {

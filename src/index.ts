@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import teacherRouter from "./routes/teacherRoutes";
+import exerciseRouter from "./routes/ExerciseRoutes";
 const mongoose = require("mongoose");
 
 dotenv.config();
@@ -20,6 +21,7 @@ const PORT = process.env.PORT;
 app.use(express.json());
 
 app.use("/teacher", teacherRouter);
+app.use("/exercise", exerciseRouter);
 
 app
   .listen(PORT, () => {
