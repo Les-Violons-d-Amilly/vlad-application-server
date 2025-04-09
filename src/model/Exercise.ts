@@ -1,7 +1,8 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface Exercise extends Document {
-  Exercise: {
+export interface Exercise extends Document {
+  name: string;
+  scores: {
     globalScore: number;
     scoreTable: {
       [score: string]: number;
@@ -10,7 +11,8 @@ interface Exercise extends Document {
 }
 
 const ExerciseSchema: Schema = new Schema({
-  Exercise: {
+  name: { type: String, required: true },
+  scores: {
     globalScore: { type: Number, required: false },
     scoreTable: {
       type: Map,

@@ -1,6 +1,7 @@
 import { Response, Request, Router } from "express";
 import rateLimit from "express-rate-limit";
 import TeacherModel from "../model/Teacher";
+import Joi from "joi";
 
 const router = Router();
 
@@ -49,6 +50,13 @@ router.post("/", async (req: Request, res: Response) => {
   } catch (error) {
     res.status(400).json({ message: "Error creating teacher" });
   }
+});
+
+// validating the teacher object to limit injections
+const updateTeacherSchema = Joi.object({
+  firstName: Joi.string().optional(),
+  lastName: Joi.string().optional(),
+  email: Joi.string().email().optional(),
 });
 
 // updating a teacher
