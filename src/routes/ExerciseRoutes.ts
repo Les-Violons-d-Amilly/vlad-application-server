@@ -48,7 +48,7 @@ router.post("/", async (req: Request, res: Response) => {
     const savedExercise = await exercise.save();
     res.status(201).json(savedExercise);
   } catch (error) {
-    res.status(400).json({ message: "Error creating Execise" });
+    res.status(400).json({ message: "Error creating an Exercise" });
   }
 });
 
