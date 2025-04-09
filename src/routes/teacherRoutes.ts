@@ -60,17 +60,23 @@ const updateTeacherSchema = Joi.object({
 });
 
 // updating a teacher
-router.patch("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
+    const { error, value } = updateTeacherSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
     const updatedTeacher = await TeacherModel.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      value, // use this instead of req.body
       { new: true, runValidators: true }
     );
-  } catch {
-    (error: any) => {
-      res.status(400).json({ message: "Error updating teacher" });
-    };
+    if (!updatedTeacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+    res.json(updatedTeacher);
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
