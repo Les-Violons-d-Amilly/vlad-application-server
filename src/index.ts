@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import teacherRouter from "./routes/teacherRoutes";
 
 dotenv.config();
 
@@ -11,13 +12,12 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => {
   console.log("MongoDB connected successfully");
 });
+
 const app = express();
 
 const PORT = process.env.PORT;
 
 app.use(express.json());
-
-const teacherRouter = require("./routes/teacher");
 
 app.use("/teacher", teacherRouter);
 
