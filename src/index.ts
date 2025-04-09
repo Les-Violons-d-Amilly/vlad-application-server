@@ -1,13 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
 import teacherRouter from "./routes/teacherRoutes";
+const mongoose = require("mongoose");
 
 dotenv.config();
 
-const mongoose = require("mongoose");
 mongoose.connect(process.env.MONGO_URI);
-const db = mongoose.connection;
 
+const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => {
   console.log("MongoDB connected successfully");
