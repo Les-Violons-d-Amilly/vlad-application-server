@@ -25,7 +25,7 @@ router.get("/", async (req: Request, res: Response) => {
 
 router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
-    const group = await GroupModel.findById(req.params.id);
+    const group = await GroupModel.findById(req.params.id).populate("students");
     if (!group) {
       return res.status(404).send("Group not found");
     }

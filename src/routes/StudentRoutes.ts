@@ -26,7 +26,10 @@ router.get("/", async (req: Request, res: Response) => {
 // getting a Student by id
 router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
-    const Student = await StudentModel.findById(req.params.id);
+    //.populate("exercises") to get the exercises of the Student
+    const Student = await StudentModel.findById(req.params.id).populate(
+      "exercises"
+    );
     if (!Student) {
       return res.status(404).send("Student not found");
     }
