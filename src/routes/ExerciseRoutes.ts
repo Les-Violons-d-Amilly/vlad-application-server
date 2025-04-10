@@ -57,9 +57,7 @@ router.post("/", async (req: Request, res: Response) => {
 const updateExerciseSchema = Joi.object({
   name: Joi.string().optional(),
   globalScore: Joi.number().optional(),
-  scores: Joi.object({
-    subPartMap: Joi.object().pattern(Joi.string(), Joi.number()).optional(),
-  }).optional(),
+  scores: Joi.object().pattern(Joi.string(), Joi.number()).optional(),
 });
 
 // updating an exercise

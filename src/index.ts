@@ -1,24 +1,27 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+
 import teacherRouter from "./routes/TeacherRoutes";
 import exerciseRouter from "./routes/ExerciseRoutes";
 import studentRouter from "./routes/StudentRoutes";
 
 const mongoose = require("mongoose");
 
-dotenv.config();
+const uri = process.env.MONGO_URI || "mongodb://localhost:27017/VLAD-db";
 
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(uri);
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => {
-  console.log("MongoDB connected successfully");
+  console.log("MongoDB connected successfully to " + uri);
 });
 
 const app = express();
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
