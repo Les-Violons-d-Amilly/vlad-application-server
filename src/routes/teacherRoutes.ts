@@ -2,6 +2,7 @@ import { Response, Request, Router } from "express";
 import rateLimit from "express-rate-limit";
 import TeacherModel from "../model/Teacher";
 import Joi from "joi";
+import { group } from "console";
 
 const router = Router();
 
@@ -26,7 +27,9 @@ router.get("/", async (req: Request, res: Response) => {
 // getting a teacher by id
 router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
-    const teacher = await TeacherModel.findById(req.params.id);
+    const teacher = await TeacherModel.findById(req.params.id).populate(
+      "groups"
+    );
     if (!teacher) {
       return res.status(404).send("Teacher not found");
     }
@@ -36,19 +39,35 @@ router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   }
 });
 
+// validating the teacher object to limit injections
+const createTeacherSchema = Joi.object({
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  email: Joi.string().email().required(),
+  groups: Joi.array().items(Joi.string().hex().length(24)).optional(),
+});
+
 // creating a teacher
-router.post("/", async (req: Request, res: Response) => {
-  const { firstName, lastName, email } = req.body;
+router.post("/", async (req: Request, res: Response): Promise<void> => {
+  const { error, value } = createTeacherSchema.validate(req.body);
+  if (error) {
+    res.status(400).json({ message: error.details[0].message });
+    return;
+  }
+  const { firstName, lastName, email, groups } = value;
   const teacher = new TeacherModel({
     firstName,
     lastName,
     email,
+    groups: groups ?? [],
   });
   try {
     const savedTeacher = await teacher.save();
     res.status(201).json(savedTeacher);
-  } catch (error) {
-    res.status(400).json({ message: "Error creating teacher" });
+  } catch (err: any) {
+    res
+      .status(400)
+      .json({ message: "Error creating a Teacher", error: err.message });
   }
 });
 
@@ -57,6 +76,7 @@ const updateTeacherSchema = Joi.object({
   firstName: Joi.string().optional(),
   lastName: Joi.string().optional(),
   email: Joi.string().email().optional(),
+  groups: Joi.array().items(Joi.string().hex().length(24)).optional(),
 });
 
 // updating a teacher
