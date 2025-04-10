@@ -6,6 +6,7 @@ import express from "express";
 import teacherRouter from "./routes/TeacherRoutes";
 import exerciseRouter from "./routes/ExerciseRoutes";
 import studentRouter from "./routes/StudentRoutes";
+import groupRouter from "./routes/GroupRoutes";
 
 const mongoose = require("mongoose");
 
@@ -28,6 +29,7 @@ app.use(express.json());
 app.use("/teacher", teacherRouter);
 app.use("/exercise", exerciseRouter);
 app.use("/student", studentRouter);
+app.use("/group", groupRouter);
 
 app
   .listen(PORT, () => {

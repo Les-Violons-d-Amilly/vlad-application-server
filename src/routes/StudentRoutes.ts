@@ -72,7 +72,7 @@ const updateStudentSchema = Joi.object({
   firstName: Joi.string().optional(),
   lastName: Joi.string().optional(),
   email: Joi.string().email().optional(),
-  exercises: Joi.array().items(Joi.string().hex().length(24)).optional(), // IDs d'exercices
+  exercises: Joi.array().items(Joi.string().hex().length(24)).optional(), // Exercises' ID
 });
 
 // updating an Student
