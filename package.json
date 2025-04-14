@@ -19,11 +19,14 @@
   "homepage": "https://github.com/Les-Violons-d-Amilly/vlad-application-server#readme",
   "dependencies": {
     "@types/joi": "^17.2.2",
+    "csv-parse": "^5.6.0",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "joi": "^17.13.3",
-    "mongoose": "^8.13.2"
+    "mongoose": "^8.13.2",
+    "nodemailer": "^6.10.1",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",

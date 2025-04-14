@@ -44,6 +44,7 @@ const createStudentSchema = Joi.object({
   firstName: Joi.string().required(),
   lastName: Joi.string().required(),
   email: Joi.string().email().required(),
+  age: Joi.number().required(),
   exercises: Joi.array().items(Joi.string().hex().length(24)).optional(),
 });
 
@@ -75,6 +76,7 @@ const updateStudentSchema = Joi.object({
   firstName: Joi.string().optional(),
   lastName: Joi.string().optional(),
   email: Joi.string().email().optional(),
+  age: Joi.number().optional(),
   exercises: Joi.array().items(Joi.string().hex().length(24)).optional(), // Exercises' ID
 });
 

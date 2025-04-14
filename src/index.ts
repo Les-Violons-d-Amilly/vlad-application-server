@@ -1,6 +1,15 @@
 import dotenv from "dotenv";
+
 dotenv.config();
 
+import { Socket } from "socket.io";
+const io = require("socket.io")(3001, {
+  cors: {
+    origin: "http://localhost:5000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 import express from "express";
 
 import teacherRouter from "./routes/TeacherRoutes";
@@ -18,6 +27,10 @@ const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => {
   console.log("MongoDB connected successfully to " + uri);
+});
+
+io.on("connection", (socket: Socket) => {
+  console.log("A user connected: " + socket.id); // Log the socket ID of the connected user
 });
 
 const app = express();
