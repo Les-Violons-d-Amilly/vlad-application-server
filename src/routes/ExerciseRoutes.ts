@@ -38,11 +38,22 @@ router.get("/:id", async (req: Request, res: Response): Promise<any> => {
 
 // creating an exercise
 router.post("/", async (req: Request, res: Response) => {
-  const { name, globalScore, scores } = req.body;
+  const {
+    name,
+    globalScore,
+    noteReading,
+    numberOfErrors,
+    reactionTime,
+    errorDetails,
+  } = req.body;
   const exercise = new ExerciseModel({
     name,
     globalScore,
-    scores,
+    noteReading,
+    numberOfErrors,
+    reactionTime,
+    errorDetails,
+    date: new Date(),
   });
   try {
     const savedExercise = await exercise.save();
@@ -57,7 +68,11 @@ router.post("/", async (req: Request, res: Response) => {
 const updateExerciseSchema = Joi.object({
   name: Joi.string().optional(),
   globalScore: Joi.number().optional(),
-  scores: Joi.object().pattern(Joi.string(), Joi.number()).optional(),
+  noteReading: Joi.string().optional(),
+  numberOfErrors: Joi.number().optional(),
+  reactionTime: Joi.number().optional(),
+  errorDetails: Joi.array().items(Joi.string()).optional(),
+  //date: Joi.array()
 });
 
 // updating an exercise
