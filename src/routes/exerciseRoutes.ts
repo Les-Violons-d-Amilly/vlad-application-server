@@ -13,8 +13,8 @@ const limiter = rateLimit({
 router.use(limiter); // apply rate limiter to all requests
 
 //get all exercises
-router.get("/", exerciseController.getAll);
 
+router.get("/", exerciseController.getAll);
 // getting an exercise by id
 router.get("/:id", exerciseController.getById);
 
@@ -30,7 +30,6 @@ const updateExerciseSchema = Joi.object({
   numberOfErrors: Joi.number().optional(),
   reactionTime: Joi.number().optional(),
   errorDetails: Joi.array().items(Joi.string()).optional(),
-  //date: Joi.array()
 });
 
 // updating an exercise

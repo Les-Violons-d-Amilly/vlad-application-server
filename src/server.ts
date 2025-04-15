@@ -3,11 +3,11 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import rateLimit from "express-rate-limit";
-import userRouter from "./routes/UserRoutes";
-import teacherRouter from "./routes/TeacherRoutes";
-import exerciseRouter from "./routes/ExerciseRoutes";
-import studentRouter from "./routes/StudentRoutes";
-import groupRouter from "./routes/GroupRoutes";
+import userRouter from "./routes/userRoutes";
+import teacherRouter from "./routes/teacherRoutes";
+import exerciseRouter from "./routes/exerciseRoutes";
+import studentRouter from "./routes/studentRoutes";
+import groupRouter from "./routes/groupRoutes";
 import { authenticateToken } from "./authMiddleware";
 
 // set up rate limiter: maximum of 100 requests per 15 minutes
