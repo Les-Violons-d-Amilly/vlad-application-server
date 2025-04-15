@@ -5,6 +5,13 @@ import Joi from "joi";
 
 const router = Router();
 
+import rateLimit from "express-rate-limit";
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+router.use(limiter); // apply rate limiter to all requests
+
 router.get("/", async (req: Request, res: Response) => {
   try {
     const groups = await GroupModel.find();
