@@ -10,16 +10,11 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in the environment variables");
 }
 
-type UserInput = {
-  name: string;
-  password: string;
-};
-
-export async function register(user: UserInput): Promise<void> {
+export async function register(user: UserDocument): Promise<void> {
   await UserModel.create(user);
 }
 
-export async function login(user: UserInput): Promise<{ token: string }> {
+export async function login(user: UserDocument): Promise<{ token: string }> {
   const foundUser = await UserModel.findOne({ name: { $eq: user.name } });
   if (!foundUser) throw new Error("Incorrect name");
 

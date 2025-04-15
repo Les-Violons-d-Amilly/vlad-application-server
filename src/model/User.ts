@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 import bcrypt from "bcrypt";
 
 export interface UserDocument extends Document {
@@ -21,4 +21,5 @@ UserSchema.pre("save", async function (next) {
 });
 
 const UserModel = mongoose.model<UserDocument>("User", UserSchema);
+
 export default UserModel;

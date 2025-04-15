@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Date } from "mongoose";
 
-export interface Exercise extends Document {
+export interface ExerciseDocument extends Document {
   name: string;
   globalScore?: number;
   noteReading?: string;
@@ -20,4 +20,4 @@ const ExerciseSchema: Schema = new Schema({
   date: { type: Date, required: false, default: Date.now }, // default to current date
 });
 
-export default mongoose.model<Exercise>("Exercise", ExerciseSchema);
+export default mongoose.model<ExerciseDocument>("Exercise", ExerciseSchema);

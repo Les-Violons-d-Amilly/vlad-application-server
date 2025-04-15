@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import * as exerciseController from "../controller/exerciseController";
 import ExerciseModel from "../model/Exercise";
 import Joi from "joi";
 
@@ -12,54 +13,13 @@ const limiter = rateLimit({
 router.use(limiter); // apply rate limiter to all requests
 
 //get all exercises
-router.get("/", async (req: Request, res: Response) => {
-  try {
-    const exercise = await ExerciseModel.find();
-    res.json(exercise);
-  } catch (error) {
-    res.status(500).send("Server error");
-  }
-});
+router.get("/", exerciseController.getAll);
 
 // getting an exercise by id
-router.get("/:id", async (req: Request, res: Response): Promise<any> => {
-  try {
-    const exercise = await ExerciseModel.findById(req.params.id);
-    if (!exercise) {
-      return res.status(404).send("exercise not found");
-    }
-    return res.json(exercise);
-  } catch (error) {
-    return res.status(500).send("Server error");
-  }
-});
+router.get("/:id", exerciseController.getById);
 
 // creating an exercise
-router.post("/", async (req: Request, res: Response) => {
-  const {
-    name,
-    globalScore,
-    noteReading,
-    numberOfErrors,
-    reactionTime,
-    errorDetails,
-  } = req.body;
-  const exercise = new ExerciseModel({
-    name,
-    globalScore,
-    noteReading,
-    numberOfErrors,
-    reactionTime,
-    errorDetails,
-    date: new Date(),
-  });
-  try {
-    const savedExercise = await exercise.save();
-    res.status(201).json(savedExercise);
-  } catch (error) {
-    res.status(400).json({ message: "Error creating an Exercise" });
-  }
-});
+router.post("/", exerciseController.createExercise);
 
 // validating the exercise object to limit injections
 
