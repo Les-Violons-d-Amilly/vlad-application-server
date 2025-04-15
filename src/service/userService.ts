@@ -5,7 +5,10 @@ dotenv.config();
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fake";
+const JWT_SECRET = process.env.JWT_SECRET as string;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in the environment variables");
+}
 
 type UserInput = {
   name: string;
@@ -17,7 +20,7 @@ export async function register(user: UserInput): Promise<void> {
 }
 
 export async function login(user: UserInput): Promise<{ token: string }> {
-  const foundUser = await UserModel.findOne({ name: user.name });
+  const foundUser = await UserModel.findOne({ name: { $eq: user.name } });
   if (!foundUser) throw new Error("Incorrect name");
 
   const isMatch = await bcrypt.compare(user.password, foundUser.password);
