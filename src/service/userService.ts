@@ -22,7 +22,7 @@ export async function login(user: UserDocument): Promise<{ token: string }> {
   if (!isMatch) throw new Error("Incorrect password");
 
   const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
-    expiresIn: "1h",
+    //expiresIn: "1h",
   });
 
   return { token };

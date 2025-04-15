@@ -31,3 +31,29 @@ export async function saveExercise(
     throw new Error("Error creating exercise: " + error);
   }
 }
+
+export async function updateExercise(
+  exerciseId: string,
+  updateData: Partial<ExerciseDocument>
+): Promise<ExerciseDocument | null> {
+  try {
+    const updatedExercise = await Exercise.findByIdAndUpdate(
+      exerciseId,
+      updateData,
+      { new: true }
+    );
+    return updatedExercise;
+  } catch (error: any) {
+    throw new Error("Error updating exercise: " + error);
+  }
+}
+
+export async function deleteExercise(
+  exerciseId: string
+): Promise<ExerciseDocument | null> {
+  try {
+    return await Exercise.findByIdAndDelete(exerciseId);
+  } catch (error: any) {
+    throw new Error("Error deleting exercise: " + error);
+  }
+}

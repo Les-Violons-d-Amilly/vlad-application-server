@@ -21,49 +21,10 @@ router.get("/:id", exerciseController.getById);
 // creating an exercise
 router.post("/", exerciseController.createExercise);
 
-// validating the exercise object to limit injections
-
-const updateExerciseSchema = Joi.object({
-  name: Joi.string().optional(),
-  globalScore: Joi.number().optional(),
-  noteReading: Joi.string().optional(),
-  numberOfErrors: Joi.number().optional(),
-  reactionTime: Joi.number().optional(),
-  errorDetails: Joi.array().items(Joi.string()).optional(),
-});
-
 // updating an exercise
-router.patch("/:id", async (req: Request, res: Response): Promise<any> => {
-  try {
-    const { error, value } = updateExerciseSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-    const updatedExercise = await ExerciseModel.findByIdAndUpdate(
-      req.params.id,
-      value, // instead of req.body
-      { new: true, runValidators: true }
-    );
-    if (!updatedExercise) {
-      return res.status(404).json({ message: "Exercise not found" });
-    }
-    res.json(updatedExercise);
-  } catch (error: any) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
+router.patch("/:id", exerciseController.updateExercise);
 
 // deleting an exercise
-router.delete("/:id", async (req: Request, res: Response): Promise<any> => {
-  try {
-    const deleted = await ExerciseModel.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ message: "Exercise not found" });
-    }
-    res.json({ message: "Deleted Exercise" });
-  } catch (err: any) {
-    res.status(500).json({ message: err.message });
-  }
-});
+router.delete("/:id", exerciseController.deleteExercise);
 
 export default router;
