@@ -35,9 +35,9 @@ const PORT = process.env.PORT;
 app.use(express.json());
 
 app.use("/user", userRouter);
-app.use("/teacher", teacherRouter);
+app.use("/teacher", authenticateToken, teacherRouter);
 app.use("/exercise", authenticateToken, exerciseRouter);
-app.use("/student", studentRouter);
+app.use("/student", authenticateToken, studentRouter);
 app.use("/group", groupRouter);
 
 app

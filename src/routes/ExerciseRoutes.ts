@@ -1,17 +1,8 @@
 import { Request, Response, Router } from "express";
-import rateLimit from "express-rate-limit";
 import ExerciseModel from "../model/Exercise";
 import Joi from "joi";
 
 const router = Router();
-
-// set up rate limiter: maximum of 100 requests per 15 minutes
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-
-router.use(limiter);
 
 //get all exercises
 router.get("/", async (req: Request, res: Response) => {
