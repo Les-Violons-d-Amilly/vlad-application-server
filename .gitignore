@@ -4,6 +4,5 @@
 # depen dencies
 node_modules/
 
-
 # production
-.dist
+dist/

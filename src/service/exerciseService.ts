@@ -1,6 +1,6 @@
 import Exercise, { ExerciseDocument } from "../model/Exercise";
 
-export async function getExercise(): Promise<any> {
+export async function getExercises(): Promise<any> {
   try {
     const exercises = await Exercise.find();
     return exercises;

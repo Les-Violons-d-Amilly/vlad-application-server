@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from "mongoose";
-import type { Student } from "./Student";
+import type { StudentDocument } from "./Student";
 
 export interface Group extends Document {
   name: string;
-  students?: Student[];
+  students?: StudentDocument[];
 }
 
 const GroupSchema: Schema = new Schema({

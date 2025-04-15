@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import ExerciseModel from "../model/Exercise";
+import ExerciseDocument from "../model/Exercise";
 import * as exerciseService from "../service/exerciseService";
 
 import Joi from "joi";
 
 export async function getAll(req: Request, res: Response) {
   try {
-    const exercise = await exerciseService.getExercise();
+    const exercise = await exerciseService.getExercises();
     res.json(exercise);
   } catch (error) {
     res.status(500).send("Server error");
@@ -38,7 +38,7 @@ export async function createExercise(
     reactionTime,
     errorDetails,
   } = req.body;
-  const exercise = new ExerciseModel({
+  const exercise = new ExerciseDocument({
     name,
     globalScore,
     noteReading,

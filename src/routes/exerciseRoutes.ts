@@ -1,7 +1,5 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import * as exerciseController from "../controller/exerciseController";
-import ExerciseModel from "../model/Exercise";
-import Joi from "joi";
 
 const router = Router();
 
