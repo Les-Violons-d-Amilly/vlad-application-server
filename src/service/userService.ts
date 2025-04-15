@@ -32,3 +32,10 @@ export async function login(user: UserInput): Promise<{ token: string }> {
 
   return { token };
 }
+
+export async function deleteOne(id: string): Promise<void> {
+  const foundUser = await UserModel.findById(id);
+  if (!foundUser) throw new Error("User not found");
+
+  await UserModel.findByIdAndDelete(id);
+}

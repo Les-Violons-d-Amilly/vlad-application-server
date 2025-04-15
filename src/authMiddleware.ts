@@ -7,14 +7,15 @@ if (!JWT_SECRET) {
 }
 
 export interface CustomRequest extends Request {
-  user?: any;
+  user?: {
+    id: string;
+  };
 }
-
 export const authenticateToken = (
   req: CustomRequest,
   res: Response,
   next: NextFunction
-): void | Promise<void> => {
+): void => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
   if (!token) {
@@ -23,8 +24,8 @@ export const authenticateToken = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    req.user = { id: decoded.id };
     next();
   } catch (error) {
     res.sendStatus(403);
