@@ -2,12 +2,19 @@ import dotenv from "dotenv";
 
 dotenv.config();
 import express from "express";
+import rateLimit from "express-rate-limit";
 import userRouter from "./routes/UserRoutes";
 import teacherRouter from "./routes/TeacherRoutes";
 import exerciseRouter from "./routes/ExerciseRoutes";
 import studentRouter from "./routes/StudentRoutes";
 import groupRouter from "./routes/GroupRoutes";
 import { authenticateToken } from "./authMiddleware";
+
+// set up rate limiter: maximum of 100 requests per 15 minutes
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
 
 const mongoose = require("mongoose");
 
@@ -22,7 +29,7 @@ db.once("open", () => {
 });
 
 const app = express();
-
+app.use(limiter); // apply rate limiter to all requests
 const PORT = process.env.PORT;
 
 app.use(express.json());

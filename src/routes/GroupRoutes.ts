@@ -1,18 +1,9 @@
 import { Response, Request, Router } from "express";
-import rateLimit from "express-rate-limit";
+
 import GroupModel from "../model/Group";
 import Joi from "joi";
-import Student from "../model/Student";
 
 const router = Router();
-
-// set up rate limiter: maximum of 100 requests per 15 minutes
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-
-router.use(limiter);
 
 router.get("/", async (req: Request, res: Response) => {
   try {
