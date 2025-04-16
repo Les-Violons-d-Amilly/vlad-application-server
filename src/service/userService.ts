@@ -34,3 +34,38 @@ export async function deleteOne(id: string): Promise<void> {
 
   await UserModel.findByIdAndDelete(id);
 }
+
+export async function getUserFromToken(token: string): Promise<UserDocument> {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+
+    const user = await UserModel.findById(decoded.id);
+    if (!user) throw new Error("User not found");
+
+    return user;
+  } catch (err) {
+    throw new Error("Invalid token");
+  }
+}
+
+export async function Authentification(
+  user: UserDocument
+): Promise<{ token: string; login: string }> {
+  const foundUser = await UserModel.findOne({ name: { $eq: user.name } });
+  if (!foundUser) throw new Error("Incorrect name");
+
+  const isMatch = await bcrypt.compare(user.password, foundUser.password);
+  if (!isMatch) throw new Error("Incorrect password");
+
+  const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
+    //expiresIn: "1h",
+  });
+  const login = makeIdentity(foundUser);
+  if (!login) throw new Error("Login not found");
+
+  return { token, login };
+}
+
+function makeIdentity(user: UserDocument): string {
+  return user.name.toLowerCase().replace(/[^a-z]/g, "");
+}

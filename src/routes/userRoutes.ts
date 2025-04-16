@@ -9,4 +9,6 @@ router.post("/login", userController.loginOne);
 
 router.delete("/me", authenticateToken, userController.deleteOne);
 
+router.get("/me", authenticateToken, userController.getProfile);
+
 export default router;

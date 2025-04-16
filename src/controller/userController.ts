@@ -35,3 +35,21 @@ export async function deleteOne(req: CustomRequest, res: Response) {
     res.status(500).json({ message: error });
   }
 }
+
+export async function getProfile(req: Request, res: Response) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ message: "No token provided" });
+      return;
+    }
+
+    const token = authHeader.split(" ")[1]; // Authorization: Bearer <token>
+    const user = await userService.getUserFromToken(token);
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+  return;
+}

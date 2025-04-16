@@ -55,7 +55,7 @@ export async function createStudent(
     exercises: exercises ?? [],
   });
   try {
-    const savedStudent = await studentService.saveStudent(student);
+    await studentService.saveStudent(student);
     res.status(201).json(student);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
