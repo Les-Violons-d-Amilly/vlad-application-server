@@ -62,6 +62,22 @@ export async function createStudent(
   }
 }
 
+export async function importStudentsFromCSV(req: Request, res: Response) {
+  if (!req.file) {
+    res.status(400).json({ message: "No file uploaded" });
+    return;
+  }
+
+  try {
+    const result = await studentService.importFromCSV(req.file.path);
+    res.json(result);
+  } catch (err: any) {
+    res
+      .status(500)
+      .json({ message: "Error importing CSV", error: err.message });
+  }
+}
+
 // validating the Student object to limit injections
 const updateStudentSchema = Joi.object({
   firstName: Joi.string().optional(),

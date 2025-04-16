@@ -1,8 +1,10 @@
-import { Request, Response, Router } from "express";
 import * as studentController from "../controller/studentController";
 import StudentModel from "../model/Student";
-import Joi from "joi";
 
+import { Request, Response, Router } from "express";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/" });
 const router = Router();
 
 import rateLimit from "express-rate-limit";
@@ -28,4 +30,9 @@ router.patch("/:id", studentController.updateStudent);
 // deleting an Student
 router.delete("/:id", studentController.deleteStudent);
 
+router.post(
+  "/import",
+  upload.single("file"),
+  studentController.importStudentsFromCSV
+);
 export default router;

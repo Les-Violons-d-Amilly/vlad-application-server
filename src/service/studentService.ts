@@ -1,5 +1,8 @@
 import Student, { StudentDocument } from "../model/Student";
 
+import fs from "fs";
+import { parse } from "csv-parse";
+
 export async function getStudents(): Promise<StudentDocument[]> {
   try {
     const students = await Student.find();
@@ -56,4 +59,43 @@ export async function deleteStudent(
   } catch (error: any) {
     throw new Error("Error deleting student: " + error);
   }
+}
+
+export async function importFromCSV(
+  filePath: string
+): Promise<StudentDocument[]> {
+  const records: StudentDocument[] = [];
+
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(
+        parse({
+          delimiter: ";",
+          columns: true,
+          trim: true,
+        })
+      )
+      .on("data", async (row) => {
+        try {
+          const student = new Student({
+            firstName: row["Prénom"],
+            lastName: row["Nom"],
+            email: row["E-mail"],
+            age: parseInt(row["Age"]),
+            sex: row["Sexe"],
+            exercises: [],
+          });
+          await student.save();
+          records.push(student);
+        } catch (err: any) {
+          console.error("Skipping invalid row:", row, err.message);
+        }
+      })
+      .on("end", () => {
+        resolve(records);
+      })
+      .on("error", (err) => {
+        reject(err);
+      });
+  });
 }
