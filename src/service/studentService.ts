@@ -1,7 +1,10 @@
 import Student, { StudentDocument } from "../model/Student";
 
+import path from "path";
 import fs from "fs";
 import { parse } from "csv-parse";
+
+const SAFE_ROOT = "/path/to/safe/directory";
 
 export async function getStudents(): Promise<StudentDocument[]> {
   try {
@@ -64,10 +67,16 @@ export async function deleteStudent(
 export async function importFromCSV(
   filePath: string
 ): Promise<StudentDocument[]> {
-  const records: StudentDocument[] = [];
-
   return new Promise((resolve, reject) => {
-    fs.createReadStream(filePath)
+    const resolvedPath = path.resolve(SAFE_ROOT, filePath);
+
+    if (!resolvedPath.startsWith(SAFE_ROOT)) {
+      return reject(new Error("Invalid file path"));
+    }
+
+    const records: StudentDocument[] = [];
+
+    fs.createReadStream(resolvedPath)
       .pipe(
         parse({
           delimiter: ";",
