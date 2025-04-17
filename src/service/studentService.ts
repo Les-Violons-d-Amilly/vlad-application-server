@@ -1,10 +1,5 @@
 import Student, { StudentDocument } from "../model/Student";
-
-import path from "path";
-import fs from "fs";
-import { parse } from "csv-parse";
-
-const SAFE_ROOT = "/path/to/safe/directory";
+import { parseCSV } from "./csvService";
 
 export async function getStudents(): Promise<StudentDocument[]> {
   try {
@@ -64,47 +59,42 @@ export async function deleteStudent(
   }
 }
 
-export async function importFromCSV(
+const studentMap: Record<string, keyof StudentDocument> = {
+  Prenom: "firstName",
+  Prnom: "firstName",
+  Nom: "lastName",
+  "E-mail": "email",
+  Age: "age",
+  Sexe: "sex",
+};
+
+function transformRow(row: Record<string, string>): Partial<StudentDocument> {
+  const student: Partial<StudentDocument> = {};
+  for (const [csvKey, modelKey] of Object.entries(studentMap)) {
+    const value = row[csvKey];
+    if (!value) continue;
+    student[modelKey] = modelKey === "age" ? parseInt(value, 10) : value;
+  }
+  student.exercises = [];
+  return student;
+}
+
+export async function importStudentsFromCSV(
   filePath: string
 ): Promise<StudentDocument[]> {
-  return new Promise((resolve, reject) => {
-    const resolvedPath = path.resolve(SAFE_ROOT, filePath);
+  const parsedRows = await parseCSV(filePath);
+  const students: StudentDocument[] = [];
 
-    if (!resolvedPath.startsWith(SAFE_ROOT)) {
-      return reject(new Error("Invalid file path"));
+  for (const row of parsedRows) {
+    try {
+      const studentData = transformRow(row as Record<string, string>);
+      const student = new Student(studentData);
+      await student.save();
+      students.push(student);
+    } catch (err: any) {
+      console.error("Skipping invalid row:", row, err.message);
     }
+  }
 
-    const records: StudentDocument[] = [];
-
-    fs.createReadStream(resolvedPath)
-      .pipe(
-        parse({
-          delimiter: ";",
-          columns: true,
-          trim: true,
-        })
-      )
-      .on("data", async (row) => {
-        try {
-          const student = new Student({
-            firstName: row["Prénom"],
-            lastName: row["Nom"],
-            email: row["E-mail"],
-            age: parseInt(row["Age"]),
-            sex: row["Sexe"],
-            exercises: [],
-          });
-          await student.save();
-          records.push(student);
-        } catch (err: any) {
-          console.error("Skipping invalid row:", row, err.message);
-        }
-      })
-      .on("end", () => {
-        resolve(records);
-      })
-      .on("error", (err) => {
-        reject(err);
-      });
-  });
+  return students;
 }

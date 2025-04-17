@@ -69,8 +69,8 @@ export async function importStudentsFromCSV(req: Request, res: Response) {
   }
 
   try {
-    const result = await studentService.importFromCSV(req.file.path);
-    res.json(result);
+    const students = await studentService.importStudentsFromCSV(req.file.path);
+    res.status(201).json({ message: "Import successful", students });
   } catch (err: any) {
     res
       .status(500)

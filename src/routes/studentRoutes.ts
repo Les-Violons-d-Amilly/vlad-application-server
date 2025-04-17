@@ -1,5 +1,4 @@
 import * as studentController from "../controller/studentController";
-import StudentModel from "../model/Student";
 
 import { Request, Response, Router } from "express";
 import multer from "multer";
@@ -31,7 +30,7 @@ router.patch("/:id", studentController.updateStudent);
 router.delete("/:id", studentController.deleteStudent);
 
 router.post(
-  "/import",
+  "/csv",
   upload.single("file"),
   studentController.importStudentsFromCSV
 );
