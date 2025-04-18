@@ -1,12 +1,12 @@
 import * as studentController from "../controller/studentController";
 
+import rateLimit from "express-rate-limit";
 import { Router } from "express";
 import multer from "multer";
 
 const upload = multer({ dest: "uploads/" });
 const router = Router();
 
-import rateLimit from "express-rate-limit";
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,

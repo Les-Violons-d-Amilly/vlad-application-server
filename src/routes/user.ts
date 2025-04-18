@@ -7,8 +7,9 @@ router.post("/register", userController.registerOne);
 
 router.post("/login", userController.loginOne);
 
-router.delete("/me", authenticateToken, userController.deleteOne);
+router.get("/:id", authenticateToken, userController.getById);
+router.delete("/@me", authenticateToken, userController.deleteOne);
 
-router.get("/me", authenticateToken, userController.getProfile);
+router.get("/@me", authenticateToken, userController.getSelf);
 
 export default router;

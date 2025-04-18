@@ -15,11 +15,11 @@ export async function register(user: UserDocument): Promise<void> {
 }
 
 export async function login(user: UserDocument): Promise<{ token: string }> {
-  const foundUser = await UserModel.findOne({ name: { $eq: user.name } });
+  const foundUser = await UserModel.findOne({ login: { $eq: user.login } });
   if (!foundUser) throw new Error("Incorrect name");
 
-  const isMatch = await bcrypt.compare(user.password, foundUser.password);
-  if (!isMatch) throw new Error("Incorrect password");
+  const isMatch = await bcrypt.compare(user.hash, foundUser.hash);
+  if (!isMatch) throw new Error("Incorrect hash");
 
   const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
     //expiresIn: "1h",
@@ -28,20 +28,28 @@ export async function login(user: UserDocument): Promise<{ token: string }> {
   return { token };
 }
 
-export async function deleteOne(id: string): Promise<void> {
-  const foundUser = await UserModel.findById(id);
-  if (!foundUser) throw new Error("User not found");
+export async function getById(id: string): Promise<UserDocument | null> {
+  try {
+    const user = await UserModel.findById(id);
+    return user;
+  } catch (error: any) {
+    throw new Error("Error fetching user by ID: " + error);
+  }
+}
 
-  await UserModel.findByIdAndDelete(id);
+export async function deleteOne(id: string): Promise<void> {
+  try {
+    const user = await UserModel.findByIdAndDelete(id);
+  } catch (error: any) {
+    throw new Error("Error deleting user: " + error);
+  }
 }
 
 export async function getUserFromToken(token: string): Promise<UserDocument> {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-
     const user = await UserModel.findById(decoded.id);
     if (!user) throw new Error("User not found");
-
     return user;
   } catch (err) {
     throw new Error("Invalid token");
@@ -51,11 +59,11 @@ export async function getUserFromToken(token: string): Promise<UserDocument> {
 export async function Authentification(
   user: UserDocument
 ): Promise<{ token: string; login: string }> {
-  const foundUser = await UserModel.findOne({ name: { $eq: user.name } });
-  if (!foundUser) throw new Error("Incorrect name");
+  const foundUser = await UserModel.findOne({ login: { $eq: user.login } });
+  if (!foundUser) throw new Error("Incorrect login");
 
-  const isMatch = await bcrypt.compare(user.password, foundUser.password);
-  if (!isMatch) throw new Error("Incorrect password");
+  const isMatch = await bcrypt.compare(user.hash, foundUser.hash);
+  if (!isMatch) throw new Error("Incorrect hash");
 
   const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
     //expiresIn: "1h",
@@ -67,5 +75,5 @@ export async function Authentification(
 }
 
 function makeIdentity(user: UserDocument): string {
-  return user.name.toLowerCase().replace(/[^a-z]/g, "");
+  return user.login.toLowerCase().replace(/[^a-z]/g, "");
 }

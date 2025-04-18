@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import rateLimit from "express-rate-limit";
-import userRouter from "./routes/userRoutes";
-import teacherRouter from "./routes/teacherRoutes";
-import exerciseRouter from "./routes/exerciseRoutes";
-import studentRouter from "./routes/studentRoutes";
+import userRouter from "./routes/user";
+import teacherRouter from "./routes/teacher";
+import exerciseRouter from "./routes/exercise";
+import studentRouter from "./routes/student";
 import groupRouter from "./routes/groupRoutes";
 import { authenticateToken } from "./authMiddleware";
 
