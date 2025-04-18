@@ -10,18 +10,13 @@
 
 _Note: This structure is subject to change in future updates._
 
-Teacher -> Groups -> Students -> Exercises
+Teacher -> Students -> Exercises
 
 Teacher
 
 - firstName: string
 - lastName: string
 - email: string
-- groups: Group[]
-
-Group
-
-- name: string
 - students: Student[]
 
 Student
