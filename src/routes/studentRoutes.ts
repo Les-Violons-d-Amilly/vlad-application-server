@@ -1,6 +1,6 @@
 import * as studentController from "../controller/studentController";
 
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import multer from "multer";
 
 const upload = multer({ dest: "uploads/" });

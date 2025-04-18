@@ -1,18 +1,18 @@
 import mongoose, { Schema, Document } from "mongoose";
-import type { Group } from "./Group";
+import type { StudentDocument } from "./Student";
 
-export interface Teacher extends Document {
+export interface TeacherDocument extends Document {
   firstName: string;
   lastName: string;
   email: string;
-  groups?: Group[];
+  student?: StudentDocument[];
 }
 
 const TeacherSchema: Schema = new Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }],
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
 });
 
-export default mongoose.model<Teacher>("Teacher", TeacherSchema);
+export default mongoose.model<TeacherDocument>("Teacher", TeacherSchema);
