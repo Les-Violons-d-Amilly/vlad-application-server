@@ -74,18 +74,13 @@ export async function getById(req: Request, res: Response) {
 
 export async function getSelf(req: CustomRequest, res: Response) {
   try {
-    const id = req.user?.id;
-    if (!id) {
-      res.status(401).json({ message: "Unauthorized" });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ message: "No token provided" });
       return;
     }
-
-    const user = await userService.getById(id);
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
+    const token = authHeader.split(" ")[1]; // Authorization: Bearer <token>
+    const user = await userService.getUserFromToken(token);
     const protectedUser: ProtectedUser = {
       firstName: user.firstName,
       lastName: user.lastName,
@@ -93,9 +88,9 @@ export async function getSelf(req: CustomRequest, res: Response) {
       login: user.login,
       email: user.email,
     };
-
     res.status(200).json(protectedUser);
-  } catch (err: any) {
-    res.status(500).json({ message: "Server error" });
+  } catch (err) {
+    res.status(401).json({ message: "Unauthorized" });
   }
+  return;
 }
