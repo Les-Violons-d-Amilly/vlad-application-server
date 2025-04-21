@@ -104,6 +104,10 @@ export async function updateAvatar(req: CustomRequest, res: Response) {
     }
     const token = authHeader.split(" ")[1]; // Authorization: Bearer <token>
     const { avatar } = req.body;
+    if (typeof avatar !== "string" || avatar.trim() === "") {
+      res.status(400).json({ message: "Invalid avatar format" });
+      return;
+    }
     const user = await userService.getUserFromToken(token);
     const updatedUser = await userService.updateAvatar(user.id, avatar);
     res.status(200).json(updatedUser);
