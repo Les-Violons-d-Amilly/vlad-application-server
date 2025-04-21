@@ -94,3 +94,21 @@ export async function getSelf(req: CustomRequest, res: Response) {
   }
   return;
 }
+
+export async function updateAvatar(req: CustomRequest, res: Response) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ message: "No token provided" });
+      return;
+    }
+    const token = authHeader.split(" ")[1]; // Authorization: Bearer <token>
+    const { avatar } = req.body;
+    const user = await userService.getUserFromToken(token);
+    const updatedUser = await userService.updateAvatar(user.id, avatar);
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+  return;
+}

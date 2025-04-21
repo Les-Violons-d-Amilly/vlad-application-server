@@ -56,6 +56,22 @@ export async function getUserFromToken(token: string): Promise<UserDocument> {
   }
 }
 
+export async function updateAvatar(
+  id: string,
+  avatar: string
+): Promise<UserDocument | null> {
+  try {
+    const user = await UserModel.findByIdAndUpdate(
+      id,
+      { avatar },
+      { new: true }
+    );
+    return user;
+  } catch (error: any) {
+    throw new Error("Error updating avatar: " + error);
+  }
+}
+
 export async function Authentification(
   user: UserDocument
 ): Promise<{ token: string; login: string }> {
