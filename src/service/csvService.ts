@@ -12,7 +12,7 @@ export async function parseCSV<T>(filePath: string): Promise<T[]> {
     }
     const records: T[] = [];
 
-    fs.createReadStream(resolvedPath, { encoding: "utf8" })
+    fs.createReadStream(resolvedPath, { encoding: "latin1" })
       .pipe(
         parse({
           delimiter: ";",
