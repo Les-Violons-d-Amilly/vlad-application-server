@@ -1,5 +1,4 @@
 import { Response, Request, Router } from "express";
-import * as teacherController from "../controller/teacherController";
 import TeacherDocument from "../model/Teacher";
 import * as teacherService from "../service/teacher";
 import Joi from "joi";

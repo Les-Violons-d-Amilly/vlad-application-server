@@ -62,6 +62,7 @@ export async function deleteStudent(
 const studentMap: Record<string, keyof StudentDocument> = {
   Prenom: "firstName",
   Prnom: "firstName",
+  Cours: "className",
   Nom: "lastName",
   "E-mail": "email",
   Age: "age",
