@@ -22,7 +22,7 @@ const createStudentSchema = Joi.object({
   email: Joi.string().email().required(),
   age: Joi.number().required(),
   sex: Joi.string().required(),
-  classname: Joi.string().required(),
+  className: Joi.string().required(),
   exercises: Joi.array().items(Joi.string().hex().length(24)).optional(),
 });
 
@@ -32,7 +32,7 @@ const updateStudentSchema = Joi.object({
   email: Joi.string().email().optional(),
   age: Joi.number().optional(),
   sex: Joi.string().optional(),
-  classname: Joi.string().optional(),
+  className: Joi.string().optional(),
   exercises: Joi.array().items(Joi.string().hex().length(24)).optional(),
 });
 
