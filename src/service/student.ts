@@ -1,5 +1,5 @@
 import Student, { StudentDocument } from "../model/Student";
-import { parseCSV } from "./csvService";
+import { parseCSV } from "./csv";
 
 export async function getStudents(): Promise<StudentDocument[]> {
   try {

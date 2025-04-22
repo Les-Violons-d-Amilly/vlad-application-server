@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import TeacherDocument from "../model/Teacher";
-import * as teacherService from "../service/teacherService";
+import * as teacherService from "../service/teacher";
 import Joi from "joi";
 
 export async function getAll(req: Request, res: Response) {

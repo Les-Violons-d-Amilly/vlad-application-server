@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import StudentDocument from "../model/Student";
-import * as studentService from "../service/studentService";
+import * as studentService from "../service/student";
 
 import Joi from "joi";
 

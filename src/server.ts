@@ -9,6 +9,7 @@ import exerciseRouter from "./routes/exercise";
 import studentRouter from "./routes/student";
 import groupRouter from "./routes/groupRoutes";
 import { authenticateToken } from "./authMiddleware";
+import swaggerDocsMiddleware from "./swagger";
 
 // set up rate limiter: maximum of 100 requests per 15 minutes
 const limiter = rateLimit({
@@ -43,6 +44,8 @@ app.use("/group", groupRouter);
 app
   .listen(PORT, () => {
     console.log("Server running at PORT: ", PORT);
+
+    swaggerDocsMiddleware(app, PORT || "5000");
   })
   .on("error", (error) => {
     throw new Error(error.message);

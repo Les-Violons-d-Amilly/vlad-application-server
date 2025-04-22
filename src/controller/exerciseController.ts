@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import ExerciseDocument from "../model/Exercise";
-import * as exerciseService from "../service/exerciseService";
+import * as exerciseService from "../service/exercise";
 
 import Joi from "joi";
 
