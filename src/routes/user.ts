@@ -1,14 +1,143 @@
-import express from "express";
-import * as userController from "../controller/userController";
-import { authenticateToken } from "../authMiddleware";
+import express, { Request, Response } from "express";
+import { authenticateToken, CustomRequest } from "../authMiddleware";
+import * as userService from "../service/user";
+
 const router = express.Router();
 
-router.post("/register", userController.registerOne);
-router.post("/login", userController.loginOne);
-router.put("/@me/avatar", authenticateToken, userController.updateAvatar);
-router.get("/@me", authenticateToken, userController.getSelf);
-router.delete("/@me", authenticateToken, userController.deleteOne);
+// Types
+type PublicUser = Readonly<{
+  firstName: string;
+  lastName: string;
+  avatar: string | null;
+}>;
 
-router.get("/:id", authenticateToken, userController.getById);
+type ProtectedUser = PublicUser &
+  Readonly<{
+    email: string;
+    login: string;
+  }>;
+
+type User = ProtectedUser &
+  Readonly<{
+    hash: string;
+  }>;
+
+// Register a new user
+router.post("/register", async (req: Request, res: Response) => {
+  try {
+    const user = req.body;
+    await userService.register(user);
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+});
+
+// Login
+router.post("/login", async (req: Request, res: Response) => {
+  try {
+    const user = req.body;
+    const { token } = await userService.login(user);
+    res.status(200).json({ token });
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+});
+
+// Get current user
+router.get(
+  "/@me",
+  authenticateToken,
+  async (req: CustomRequest, res: Response): Promise<any> => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ message: "No token provided" });
+      }
+
+      const token = authHeader.split(" ")[1];
+      const user = await userService.getUserFromToken(token);
+      const protectedUser: ProtectedUser = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        login: user.login,
+        email: user.email,
+      };
+      res.status(200).json(protectedUser);
+    } catch (err) {
+      res.status(401).json({ message: "Unauthorized" });
+    }
+  }
+);
+
+// Update avatar
+router.put(
+  "/@me/avatar",
+  authenticateToken,
+  async (req: CustomRequest, res: Response): Promise<any> => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ message: "No token provided" });
+      }
+
+      const token = authHeader.split(" ")[1];
+      const { avatar } = req.body;
+
+      if (typeof avatar !== "string" || avatar.trim() === "") {
+        return res.status(400).json({ message: "Invalid avatar format" });
+      }
+
+      const user = await userService.getUserFromToken(token);
+      const updatedUser = await userService.updateAvatar(user.id, avatar);
+      res.status(200).json(updatedUser);
+    } catch (err) {
+      res.status(401).json({ message: "Unauthorized" });
+    }
+  }
+);
+
+// Delete user
+router.delete(
+  "/@me",
+  authenticateToken,
+  async (req: CustomRequest, res: Response): Promise<any> => {
+    try {
+      const id = req.user?.id;
+      if (!id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      await userService.deleteOne(id);
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: error });
+    }
+  }
+);
+
+// Get user by ID
+router.get(
+  "/:id",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<any> => {
+    try {
+      const id = req.params.id;
+      const user = await userService.getById(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const publicUser: PublicUser = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+      };
+      res.status(200).json(publicUser);
+    } catch (error) {
+      res.status(500).json({ message: error });
+    }
+  }
+);
 
 export default router;
