@@ -23,6 +23,8 @@ export interface StudentDocument extends Document {
   avatar: string | null;
   group: string;
   timeOnApp: DurationPerDate[];
+  online: boolean;
+  lastSeen: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +41,8 @@ const StudentSchema = new Schema<StudentDocument>(
     age: { type: Number, required: true },
     sex: { type: Number, required: true },
     group: { type: String, required: false },
+    online: { type: Boolean, default: false },
+    lastSeen: { type: Date, default: null },
     timeOnApp: {
       type: [
         {

@@ -111,11 +111,7 @@ router.get("/:id", async (req, res): Promise<any> => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      avatar: user.avatar,
-    });
+    res.status(200).json(omit(user.toJSON(), "hash", "refreshToken", "email"));
   } catch (error) {
     res.status(500).json({ message: error });
   }
