@@ -61,14 +61,7 @@ router.get(
 
       const token = authHeader.split(" ")[1];
       const user = await userService.getUserFromToken(token);
-      const protectedUser: ProtectedUser = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatar: user.avatar,
-        login: user.identity,
-        email: user.email,
-      };
-      res.status(200).json(protectedUser);
+      res.status(200).json(omit(user, "hash"));
     } catch (err) {
       res.status(401).json({ message: "Unauthorized" });
     }

@@ -83,7 +83,7 @@ export async function getUserFromToken(token: string): Promise<UserDocument> {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
     const user = await UserModel.findById(decoded.id);
     if (!user) throw new Error("User not found");
-    return user;
+    return user.toObject();
   } catch (err) {
     throw new Error("Invalid token");
   }
