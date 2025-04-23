@@ -13,14 +13,14 @@ enum Sex {
 
 export interface UserDocument extends Document {
   identity: string;
-  hash: string;
   firstName: string;
   lastName: string;
   email: string;
+  hash: string;
+  refreshToken?: string;
   age: number;
   sex: Sex;
   avatar: string;
-  refreshToken?: string;
   timeOnApp: DurationPerDate[];
   createdAt: Date;
   updatedAt: Date;
@@ -29,12 +29,12 @@ export interface UserDocument extends Document {
 const UserSchema = new mongoose.Schema<UserDocument>(
   {
     identity: { type: String, required: true, unique: true },
-    hash: { type: String, required: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    avatar: { type: String, default: null, required: false },
+    hash: { type: String, required: true },
     refreshToken: { type: String, required: false },
+    avatar: { type: String, default: null, required: false },
     age: { type: Number, required: true },
     sex: { type: Number, required: true },
     timeOnApp: {
