@@ -34,7 +34,7 @@ const StudentSchema = new Schema<StudentDocument>(
     identity: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true },
     hash: { type: String, required: true },
     refreshToken: { type: String, required: false },
     avatar: { type: String, default: null, required: false },

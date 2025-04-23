@@ -22,6 +22,7 @@ type RegisterProps = Readonly<{
   email: string;
   sex: Sex;
   age: number;
+  group: string;
 }>;
 
 type LoginProps = Readonly<{
@@ -51,7 +52,14 @@ export async function register(user: RegisterProps): Promise<void> {
     email: user.email,
     sex: user.sex,
     age: user.age,
+    group: user.group,
   });
+}
+
+export async function registerMany(users: RegisterProps[]): Promise<number> {
+  const userPromises = users.map((user) => register(user));
+  await Promise.all(userPromises);
+  return users.length;
 }
 
 export async function login(user: LoginProps): Promise<{
