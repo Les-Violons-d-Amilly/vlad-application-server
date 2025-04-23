@@ -1,192 +1,107 @@
-import express, { Request, Response } from "express";
-import { authenticateToken, CustomRequest } from "../authMiddleware";
-import * as userService from "../service/user";
+import "dotenv/config";
+import { Router } from "express";
 import omit from "../utils/omit";
+import { CustomRequest } from "../utils/authentication";
+import { deleteOne, getById } from "../service/user";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import sharp from "sharp";
 
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config();
-const router = express.Router();
+const router = Router();
+const upload = multer();
 
-// Types
-type PublicUser = Readonly<{
-  firstName: string;
-  lastName: string;
-  avatar: string | null;
-}>;
-
-type ProtectedUser = PublicUser &
-  Readonly<{
-    email: string;
-    login: string;
-  }>;
-
-type User = ProtectedUser &
-  Readonly<{
-    hash: string;
-  }>;
-
-// Register a new user
-router.post("/register", async (req: Request, res: Response) => {
+router.get("/@me", async (req, res): Promise<any> => {
   try {
-    const user = req.body;
-    await userService.register(user);
-    res.status(201).json({ message: "User registered successfully" });
+    res
+      .status(200)
+      .json(omit((req as CustomRequest).user, "hash", "refreshToken"));
+  } catch (err) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+});
+
+router.delete("/@me", async (req, res): Promise<any> => {
+  try {
+    await deleteOne((req as CustomRequest).user.id);
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error });
   }
 });
 
-// Login
-router.post("/login", async (req: Request, res: Response) => {
-  try {
-    const { accessToken, user, refreshToken } = await userService.login(
-      req.body
-    );
+router.put(
+  "/@me/avatar",
+  upload.single("avatar"),
+  async (req, res): Promise<any> => {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
-    res.status(200).json({
-      user: omit(user, "hash", "refreshToken"),
-      accessToken,
-      refreshToken,
-    });
+    if (!/png|jpe?g/i.test(req.file.mimetype)) {
+      return res.status(400).json({ message: "Invalid file type" });
+    }
+
+    const user = (req as CustomRequest).user;
+    const fileName = `${user.id}-${Date.now()}.png`;
+    const uploadDir = path.join(__dirname, "../uploads/avatars");
+    const outputPath = path.join(uploadDir, fileName);
+
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+    try {
+      await sharp(req.file.buffer)
+        .resize(256, 256, { fit: "cover" })
+        .png()
+        .toFile(outputPath);
+
+      user.avatar = fileName;
+      await user.save();
+
+      res.status(200).json({
+        message: "Avatar updated successfully",
+        avatar: fileName,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error processing image" });
+    }
+  }
+);
+
+router.delete("/@me/avatar", async (req, res): Promise<any> => {
+  try {
+    const user = (req as CustomRequest).user;
+
+    if (!user.avatar) {
+      return res.status(400).json({ message: "No avatar to delete" });
+    }
+
+    const avatarPath = path.join(__dirname, "../uploads/avatars", user.avatar);
+
+    fs.unlinkSync(avatarPath);
+    user.avatar = null;
+    await user.save();
   } catch (error) {
-    res.status(500).json({ message: "" + error });
+    res.status(500).json({ message: error });
   }
 });
 
-router.post(
-  "/logout",
-  authenticateToken,
-  async (req: CustomRequest, res: Response): Promise<any> => {
-    try {
-      const id = req.user?.id;
-      if (!id) return res.sendStatus(401);
+router.get("/:id", async (req, res): Promise<any> => {
+  try {
+    const user = await getById(req.params.id);
 
-      const user = await userService.getById(id);
-      if (!user) return res.sendStatus(404);
-
-      user.refreshToken = undefined;
-      await user.save();
-
-      res.status(200).json({ message: "Logged out successfully" });
-    } catch (err) {
-      res.status(500).json({ message: "Logout failed" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    res.status(200).json({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatar: user.avatar,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error });
   }
-);
-
-// Get current user
-router.get(
-  "/@me",
-  authenticateToken,
-  async (req: CustomRequest, res: Response): Promise<any> => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(401).json({ message: "No token provided" });
-      }
-
-      const token = authHeader.split(" ")[1];
-      const user = await userService.getUserFromToken(token);
-      res.status(200).json(omit(user, "hash", "refreshToken"));
-    } catch (err) {
-      res.status(401).json({ message: "Unauthorized" });
-    }
-  }
-);
-
-// Update avatar
-router.put(
-  "/@me/avatar",
-  authenticateToken,
-  async (req: CustomRequest, res: Response): Promise<any> => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(401).json({ message: "No token provided" });
-      }
-
-      const token = authHeader.split(" ")[1];
-      const { avatar } = req.body;
-
-      if (typeof avatar !== "string" || avatar.trim() === "") {
-        return res.status(400).json({ message: "Invalid avatar format" });
-      }
-
-      const user = await userService.getUserFromToken(token);
-      const updatedUser = await userService.updateAvatar(user.id, avatar);
-      res.status(200).json(updatedUser);
-    } catch (err) {
-      res.status(401).json({ message: "Unauthorized" });
-    }
-  }
-);
-
-// Delete user
-router.delete(
-  "/@me",
-  authenticateToken,
-  async (req: CustomRequest, res: Response): Promise<any> => {
-    try {
-      const id = req.user?.id;
-      if (!id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      await userService.deleteOne(id);
-      res.status(200).json({ message: "User deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: error });
-    }
-  }
-);
-
-// Get user by ID
-router.get(
-  "/:id",
-  authenticateToken,
-  async (req: Request, res: Response): Promise<any> => {
-    try {
-      const id = req.params.id;
-      const user = await userService.getById(id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      const publicUser: PublicUser = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatar: user.avatar,
-      };
-      res.status(200).json(publicUser);
-    } catch (error) {
-      res.status(500).json({ message: error });
-    }
-  }
-);
-
-router.post(
-  "/refresh-token",
-  async (req: Request, res: Response): Promise<any> => {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return res.sendStatus(401);
-    try {
-      const JWT_SECRET = process.env.JWT_SECRET;
-      if (!JWT_SECRET) {
-        return res.status(500).json({ message: "JWT_SECRET is not defined" });
-      }
-      const decoded = jwt.verify(refreshToken, JWT_SECRET) as { id: string };
-      const user = await userService.getById(decoded.id);
-
-      if (!user || user.refreshToken !== refreshToken) {
-        return res.sendStatus(403);
-      }
-      const newAccessToken = jwt.sign({ id: user._id }, JWT_SECRET, {
-        expiresIn: "15m",
-      });
-      res.status(200).json({ token: newAccessToken });
-    } catch (error) {
-      res.sendStatus(403);
-    }
-  }
-);
+});
 
 export default router;

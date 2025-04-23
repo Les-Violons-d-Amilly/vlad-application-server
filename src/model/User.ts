@@ -20,7 +20,7 @@ export interface UserDocument extends Document {
   refreshToken?: string;
   age: number;
   sex: Sex;
-  avatar: string;
+  avatar: string | null;
   timeOnApp: DurationPerDate[];
   createdAt: Date;
   updatedAt: Date;
