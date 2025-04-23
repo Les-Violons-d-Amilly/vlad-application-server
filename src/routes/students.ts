@@ -32,7 +32,7 @@ router.get("/@me", async (req, res): Promise<any> => {
   try {
     res
       .status(200)
-      .json(omit((req as CustomRequest).user, "hash", "refreshToken"));
+      .json(omit((req as CustomRequest).user.toJSON(), "hash", "refreshToken"));
   } catch (err) {
     res.status(401).json({ message: "Unauthorized" });
   }
