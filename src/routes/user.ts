@@ -2,6 +2,9 @@ import express, { Request, Response } from "express";
 import { authenticateToken, CustomRequest } from "../authMiddleware";
 import * as userService from "../service/user";
 
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 const router = express.Router();
 
 // Types
@@ -37,12 +40,33 @@ router.post("/register", async (req: Request, res: Response) => {
 router.post("/login", async (req: Request, res: Response) => {
   try {
     const user = req.body;
-    const { token } = await userService.login(user);
-    res.status(200).json({ token });
+    const { token, refreshToken } = await userService.login(user);
+    res.status(200).json({ token, refreshToken });
   } catch (error) {
     res.status(500).json({ message: error });
   }
 });
+
+router.post(
+  "/logout",
+  authenticateToken,
+  async (req: CustomRequest, res: Response): Promise<any> => {
+    try {
+      const id = req.user?.id;
+      if (!id) return res.sendStatus(401);
+
+      const user = await userService.getById(id);
+      if (!user) return res.sendStatus(404);
+
+      user.refreshToken = undefined;
+      await user.save();
+
+      res.status(200).json({ message: "Logged out successfully" });
+    } catch (err) {
+      res.status(500).json({ message: "Logout failed" });
+    }
+  }
+);
 
 // Get current user
 router.get(
@@ -127,7 +151,6 @@ router.get(
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-
       const publicUser: PublicUser = {
         firstName: user.firstName,
         lastName: user.lastName,
@@ -136,6 +159,32 @@ router.get(
       res.status(200).json(publicUser);
     } catch (error) {
       res.status(500).json({ message: error });
+    }
+  }
+);
+
+router.post(
+  "/refresh-token",
+  async (req: Request, res: Response): Promise<any> => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.sendStatus(401);
+    try {
+      const JWT_SECRET = process.env.JWT_SECRET;
+      if (!JWT_SECRET) {
+        return res.status(500).json({ message: "JWT_SECRET is not defined" });
+      }
+      const decoded = jwt.verify(refreshToken, JWT_SECRET) as { id: string };
+      const user = await userService.getById(decoded.id);
+
+      if (!user || user.refreshToken !== refreshToken) {
+        return res.sendStatus(403);
+      }
+      const newAccessToken = jwt.sign({ id: user._id }, JWT_SECRET, {
+        expiresIn: "15m",
+      });
+      res.status(200).json({ token: newAccessToken });
+    } catch (error) {
+      res.sendStatus(403);
     }
   }
 );

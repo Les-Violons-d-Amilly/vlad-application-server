@@ -8,6 +8,7 @@ export interface UserDocument extends Document {
   lastName: string;
   email: string;
   avatar: string;
+  refreshToken?: string;
 }
 
 const UserSchema = new mongoose.Schema<UserDocument>({
@@ -17,6 +18,7 @@ const UserSchema = new mongoose.Schema<UserDocument>({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   avatar: { type: String, default: null, required: false },
+  refreshToken: { type: String, required: false },
 });
 
 // pre('save') allow to hash password before saving to DB

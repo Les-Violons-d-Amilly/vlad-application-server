@@ -14,7 +14,9 @@ export async function register(user: UserDocument): Promise<void> {
   await UserModel.create(user);
 }
 
-export async function login(user: UserDocument): Promise<{ token: string }> {
+export async function login(
+  user: UserDocument
+): Promise<{ token: string; refreshToken: string }> {
   const foundUser = await UserModel.findOne({ login: { $eq: user.login } });
   if (!foundUser) throw new Error("Incorrect name");
 
@@ -22,10 +24,16 @@ export async function login(user: UserDocument): Promise<{ token: string }> {
   if (!isMatch) throw new Error("Incorrect hash");
 
   const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
-    //expiresIn: "1h",
+    expiresIn: "1h",
+  });
+  const refreshToken = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
+    expiresIn: "7d",
   });
 
-  return { token };
+  foundUser.refreshToken = refreshToken;
+  await foundUser.save();
+
+  return { token, refreshToken };
 }
 
 export async function getById(id: string): Promise<UserDocument | null> {
