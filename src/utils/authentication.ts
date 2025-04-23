@@ -1,10 +1,10 @@
 import { Request, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { getById } from "../service/user";
-import { UserDocument } from "../model/User";
+import { StudentDocument } from "../model/Student";
 
 export type CustomRequest = Request & {
-  user: UserDocument;
+  user: StudentDocument;
 };
 
 export type DecodedToken = {

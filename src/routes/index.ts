@@ -1,14 +1,16 @@
 import { Router } from "express";
+import { useAuthentication } from "../utils/authentication";
 
 import auth from "./auth";
-import user from "./user";
-import exercise from "./exercise";
-import { useAuthentication } from "../utils/authentication";
+import students from "./students";
+import teachers from "./teachers";
+import exercises from "./exercises";
 
 const router = Router();
 
 router.use("/auth", auth);
-router.use("/user", useAuthentication, user);
-router.use("/exercise", useAuthentication, exercise);
+router.use("/students", useAuthentication, students);
+router.use("/teachers", useAuthentication, teachers);
+router.use("/exercises", useAuthentication, exercises);
 
 export default router;

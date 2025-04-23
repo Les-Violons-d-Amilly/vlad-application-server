@@ -3,13 +3,13 @@ import { getById, login, register } from "../service/user";
 import omit from "../utils/omit";
 import jwt from "jsonwebtoken";
 import Joi from "joi";
-import { CustomRequest, useAuthentication } from "../utils/authentication";
+import {
+  CustomRequest,
+  DecodedToken,
+  useAuthentication,
+} from "../utils/authentication";
 
 const router = Router();
-
-type DecodedToken = {
-  id: string;
-};
 
 router.post("/register", async (req: Request, res: Response): Promise<any> => {
   const { error, value } = Joi.object({

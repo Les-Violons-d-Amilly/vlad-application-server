@@ -1,4 +1,4 @@
-import UserModel, { UserDocument } from "../model/User";
+import UserModel, { StudentDocument } from "../model/Student";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -54,9 +54,11 @@ export async function register(user: RegisterProps): Promise<void> {
   });
 }
 
-export async function login(
-  user: LoginProps
-): Promise<{ accessToken: string; user: UserDocument; refreshToken: string }> {
+export async function login(user: LoginProps): Promise<{
+  accessToken: string;
+  user: StudentDocument;
+  refreshToken: string;
+}> {
   const foundUser = await UserModel.findOne({ identity: user.identity });
   if (!foundUser) throw new Error("Incorrect name");
 
@@ -76,7 +78,7 @@ export async function login(
   return { user: foundUser.toObject(), accessToken, refreshToken };
 }
 
-export async function getById(id: string): Promise<UserDocument | null> {
+export async function getById(id: string): Promise<StudentDocument | null> {
   try {
     const user = await UserModel.findById(id);
     return user;
@@ -93,7 +95,9 @@ export async function deleteOne(id: string): Promise<void> {
   }
 }
 
-export async function getUserFromToken(token: string): Promise<UserDocument> {
+export async function getUserFromToken(
+  token: string
+): Promise<StudentDocument> {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
     const user = await UserModel.findById(decoded.id);
