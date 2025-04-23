@@ -23,6 +23,7 @@ router.post("/register", async (req: Request, res: Response): Promise<any> => {
       .required(),
     sex: Joi.number().min(0).max(1).required(),
     age: Joi.number().required(),
+    group: Joi.string().required(),
   }).validate(req.body);
 
   if (error) {
