@@ -2,10 +2,15 @@ import express, { Request, Response } from "express";
 import { authenticateToken, CustomRequest } from "../authMiddleware";
 import * as userService from "../service/user";
 import omit from "../utils/omit";
-
-import jwt from "jsonwebtoken";
+import multer from "multer";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import path from "path";
+import fs from "fs";
+import sharp from "sharp";
 dotenv.config();
+
+const upload = multer(); // Initialize multer for file uploads
 const router = express.Router();
 
 // Types
@@ -99,25 +104,56 @@ router.get(
 router.put(
   "/@me/avatar",
   authenticateToken,
+  upload.single("avatar"),
   async (req: CustomRequest, res: Response): Promise<any> => {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(401).json({ message: "No token provided" });
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      if (
+        !(
+          file.mimetype.endsWith("png") ||
+          file.mimetype.endsWith("jpeg") ||
+          file.mimetype.endsWith("jpg")
+        )
+      ) {
+        return res.status(400).json({ message: "Invalid file type" });
       }
 
-      const token = authHeader.split(" ")[1];
-      const { avatar } = req.body;
-
-      if (typeof avatar !== "string" || avatar.trim() === "") {
-        return res.status(400).json({ message: "Invalid avatar format" });
-      }
-
+      const token = req.headers.authorization?.split(" ")[1] || "";
       const user = await userService.getUserFromToken(token);
-      const updatedUser = await userService.updateAvatar(user.id, avatar);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const userId = (user as any)._id?.toString();
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized (invalid ID)" });
+      }
+
+      const filename = `${userId}-${Date.now()}.png`;
+      const uploadDir = path.join(__dirname, "..", "uploads", "avatars");
+      const outputPath = path.join(uploadDir, filename);
+      const publicPath = `/avatars/${filename}`;
+
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const pngBuffer = await sharp(file.buffer).png().toBuffer();
+      fs.writeFileSync(outputPath, pngBuffer);
+
+      const updatedUser = await userService.updateAvatar(userId, publicPath);
+
       res.status(200).json(updatedUser);
     } catch (err) {
-      res.status(401).json({ message: "Unauthorized" });
+      console.error(err);
+      res.status(500).json({
+        message: "error uploading avatar",
+      });
     }
   }
 );

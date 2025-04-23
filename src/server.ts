@@ -10,6 +10,7 @@ import studentRouter from "./routes/student";
 import groupRouter from "./routes/groupRoutes";
 import { authenticateToken } from "./authMiddleware";
 import swaggerDocsMiddleware from "./swagger";
+import path from "path";
 
 // set up rate limiter: maximum of 100 requests per 15 minutes
 const limiter = rateLimit({
@@ -34,6 +35,8 @@ app.use(limiter); // apply rate limiter to all requests
 const PORT = process.env.PORT;
 
 app.use(express.json());
+
+app.use("/avatars", express.static(path.join(__dirname, "uploads", "avatars")));
 
 app.use("/user", userRouter);
 app.use("/teacher", authenticateToken, teacherRouter);

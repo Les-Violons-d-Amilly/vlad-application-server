@@ -114,6 +114,7 @@ export async function updateAvatar(
       { avatar },
       { new: true }
     );
+    console.log("Updating avatar in DB for user:", id);
     return user;
   } catch (error: any) {
     throw new Error("Error updating avatar: " + error);
