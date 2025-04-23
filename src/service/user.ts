@@ -73,7 +73,7 @@ export async function login(
   foundUser.refreshToken = refreshToken;
   await foundUser.save();
 
-  return { accessToken, user: foundUser.toObject(), refreshToken };
+  return { user: foundUser.toObject(), accessToken, refreshToken };
 }
 
 export async function getById(id: string): Promise<UserDocument | null> {

@@ -45,7 +45,7 @@ router.post("/login", async (req: Request, res: Response) => {
     );
 
     res.status(200).json({
-      user: omit(user, "hash"),
+      user: omit(user, "hash", "refreshToken"),
       accessToken,
       refreshToken,
     });
@@ -88,7 +88,7 @@ router.get(
 
       const token = authHeader.split(" ")[1];
       const user = await userService.getUserFromToken(token);
-      res.status(200).json(omit(user, "hash"));
+      res.status(200).json(omit(user, "hash", "refreshToken"));
     } catch (err) {
       res.status(401).json({ message: "Unauthorized" });
     }
