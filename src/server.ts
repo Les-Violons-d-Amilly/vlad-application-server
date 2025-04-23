@@ -41,12 +41,12 @@ app.use("/exercise", authenticateToken, exerciseRouter);
 app.use("/student", authenticateToken, studentRouter);
 app.use("/group", groupRouter);
 
-app
-  .listen(PORT, () => {
-    console.log("Server running at PORT: ", PORT);
+const server = app.listen(PORT, () => {
+  console.log("Server running at PORT: ", PORT);
 
-    swaggerDocsMiddleware(app, PORT || "5000");
-  })
-  .on("error", (error) => {
-    throw new Error(error.message);
-  });
+  swaggerDocsMiddleware(app, PORT || "5000");
+});
+
+server.on("error", (error) => {
+  throw new Error(error.message);
+});

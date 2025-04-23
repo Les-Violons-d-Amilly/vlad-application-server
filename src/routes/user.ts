@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { authenticateToken, CustomRequest } from "../authMiddleware";
 import * as userService from "../service/user";
+import omit from "../utils/omit";
 
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -39,11 +40,15 @@ router.post("/register", async (req: Request, res: Response) => {
 // Login
 router.post("/login", async (req: Request, res: Response) => {
   try {
-    const user = req.body;
-    const { token, refreshToken } = await userService.login(user);
-    res.status(200).json({ token, refreshToken });
+    const { token, user, refreshToken } = await userService.login(req.body);
+
+    res.status(200).json({
+      token,
+      user: omit(user, "hash"),
+      refreshToken,
+    });
   } catch (error) {
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: "" + error });
   }
 });
 
@@ -81,14 +86,7 @@ router.get(
 
       const token = authHeader.split(" ")[1];
       const user = await userService.getUserFromToken(token);
-      const protectedUser: ProtectedUser = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatar: user.avatar,
-        login: user.login,
-        email: user.email,
-      };
-      res.status(200).json(protectedUser);
+      res.status(200).json(omit(user, "hash"));
     } catch (err) {
       res.status(401).json({ message: "Unauthorized" });
     }
