@@ -1,15 +1,19 @@
-import { Socket } from "socket.io";
+import type { Server } from "http";
+import { type Socket, Server as SIOServer } from "socket.io";
 
-const webSocket = require("socket.io")(3001, {
-  cors: {
-    origin: "http://localhost:5000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
+export default function (app: Server) {
+  const application = new SIOServer(app, {
+    cors: {
+      origin: "*",
+      credentials: true,
+    },
+  });
 
-webSocket.on("connection", (socket: Socket) => {
-  console.log("A user connected: " + socket.id);
-});
+  application.on("connection", (socket: Socket) => {
+    console.log("New client connected", socket.id);
 
-export default webSocket;
+    socket.on("disconnect", () => {
+      console.log("Client disconnected", socket.id);
+    });
+  });
+}

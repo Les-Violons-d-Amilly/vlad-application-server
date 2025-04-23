@@ -10,11 +10,18 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in the environment variables");
 }
 
+enum Sex {
+  Female,
+  Male,
+}
+
 type RegisterProps = Readonly<{
   firstName: string;
   lastName: string;
   password: string;
   email: string;
+  sex: Sex;
+  age: number;
 }>;
 
 type LoginProps = Readonly<{
@@ -42,6 +49,8 @@ export async function register(user: RegisterProps): Promise<void> {
     identity: identity,
     hash: user.password,
     email: user.email,
+    sex: user.sex,
+    age: user.age,
   });
 }
 
