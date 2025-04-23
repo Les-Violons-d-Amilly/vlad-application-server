@@ -40,11 +40,13 @@ router.post("/register", async (req: Request, res: Response) => {
 // Login
 router.post("/login", async (req: Request, res: Response) => {
   try {
-    const { token, user, refreshToken } = await userService.login(req.body);
+    const { accessToken, user, refreshToken } = await userService.login(
+      req.body
+    );
 
     res.status(200).json({
-      token,
       user: omit(user, "hash"),
+      accessToken,
       refreshToken,
     });
   } catch (error) {

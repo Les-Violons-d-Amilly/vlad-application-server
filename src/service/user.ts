@@ -56,14 +56,14 @@ export async function register(user: RegisterProps): Promise<void> {
 
 export async function login(
   user: LoginProps
-): Promise<{ token: string; user: UserDocument; refreshToken: string }> {
+): Promise<{ accessToken: string; user: UserDocument; refreshToken: string }> {
   const foundUser = await UserModel.findOne({ identity: user.identity });
   if (!foundUser) throw new Error("Incorrect name");
 
   const isMatch = await bcrypt.compare(user.password, foundUser.hash);
   if (!isMatch) throw new Error("Incorrect hash");
 
-  const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
+  const accessToken = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
     expiresIn: "1h",
   });
   const refreshToken = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
@@ -73,7 +73,7 @@ export async function login(
   foundUser.refreshToken = refreshToken;
   await foundUser.save();
 
-  return { token, user: foundUser.toObject(), refreshToken };
+  return { accessToken, user: foundUser.toObject(), refreshToken };
 }
 
 export async function getById(id: string): Promise<UserDocument | null> {
