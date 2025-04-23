@@ -2,7 +2,7 @@ import mongoose, { Document } from "mongoose";
 import bcrypt from "bcrypt";
 
 export interface UserDocument extends Document {
-  login: string;
+  identity: string;
   hash: string;
   firstName: string;
   lastName: string;
@@ -11,7 +11,7 @@ export interface UserDocument extends Document {
 }
 
 const UserSchema = new mongoose.Schema<UserDocument>({
-  login: { type: String, required: true, unique: true },
+  identity: { type: String, required: true, unique: true },
   hash: { type: String, required: true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
@@ -21,10 +21,8 @@ const UserSchema = new mongoose.Schema<UserDocument>({
 
 // pre('save') allow to hash password before saving to DB
 UserSchema.pre("save", async function (next) {
-  const user = this as UserDocument;
-  if (user.isModified("hash")) {
-    user.hash = await bcrypt.hash(user.hash, 8);
-  }
+  if (!this.isModified("hash")) return next();
+  this.hash = await bcrypt.hash(this.hash, 8);
   next();
 });
 

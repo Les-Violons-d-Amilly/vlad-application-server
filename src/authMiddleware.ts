@@ -11,6 +11,7 @@ export interface CustomRequest extends Request {
     id: string;
   };
 }
+
 export const authenticateToken = (
   req: CustomRequest,
   res: Response,

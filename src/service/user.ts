@@ -10,22 +10,55 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in the environment variables");
 }
 
-export async function register(user: UserDocument): Promise<void> {
-  await UserModel.create(user);
+type RegisterProps = Readonly<{
+  firstName: string;
+  lastName: string;
+  password: string;
+  email: string;
+}>;
+
+type LoginProps = Readonly<{
+  identity: string;
+  password: string;
+}>;
+
+export async function register(user: RegisterProps): Promise<void> {
+  let identity =
+    user.firstName[0].toLowerCase() +
+    user.lastName
+      .toLowerCase()
+      .replace(/[^a-z]/g, "")
+      .slice(0, 7);
+
+  const existingIdentities = await UserModel.countDocuments({
+    identity: { $regex: new RegExp(`^${identity}\\d*$`) },
+  });
+
+  if (existingIdentities) identity += existingIdentities + 1;
+
+  await UserModel.create({
+    firstName: user.firstName.toLowerCase(),
+    lastName: user.lastName.toLowerCase(),
+    identity: identity,
+    hash: user.password,
+    email: user.email,
+  });
 }
 
-export async function login(user: UserDocument): Promise<{ token: string }> {
-  const foundUser = await UserModel.findOne({ login: { $eq: user.login } });
+export async function login(
+  user: LoginProps
+): Promise<{ token: string; user: UserDocument }> {
+  const foundUser = await UserModel.findOne({ identity: user.identity });
   if (!foundUser) throw new Error("Incorrect name");
 
-  const isMatch = await bcrypt.compare(user.hash, foundUser.hash);
+  const isMatch = await bcrypt.compare(user.password, foundUser.hash);
   if (!isMatch) throw new Error("Incorrect hash");
 
   const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
     //expiresIn: "1h",
   });
 
-  return { token };
+  return { token, user: foundUser.toObject() };
 }
 
 export async function getById(id: string): Promise<UserDocument | null> {
@@ -39,7 +72,7 @@ export async function getById(id: string): Promise<UserDocument | null> {
 
 export async function deleteOne(id: string): Promise<void> {
   try {
-    const user = await UserModel.findByIdAndDelete(id);
+    await UserModel.findByIdAndDelete(id);
   } catch (error: any) {
     throw new Error("Error deleting user: " + error);
   }
@@ -70,26 +103,4 @@ export async function updateAvatar(
   } catch (error: any) {
     throw new Error("Error updating avatar: " + error);
   }
-}
-
-export async function Authentification(
-  user: UserDocument
-): Promise<{ token: string; login: string }> {
-  const foundUser = await UserModel.findOne({ login: { $eq: user.login } });
-  if (!foundUser) throw new Error("Incorrect login");
-
-  const isMatch = await bcrypt.compare(user.hash, foundUser.hash);
-  if (!isMatch) throw new Error("Incorrect hash");
-
-  const token = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
-    //expiresIn: "1h",
-  });
-  const login = makeIdentity(foundUser);
-  if (!login) throw new Error("Login not found");
-
-  return { token, login };
-}
-
-function makeIdentity(user: UserDocument): string {
-  return user.login.toLowerCase().replace(/[^a-z]/g, "");
 }
