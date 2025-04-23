@@ -89,7 +89,18 @@ router.post("/refresh", async (req: Request, res: Response): Promise<any> => {
       expiresIn: "15m",
     });
 
-    res.status(200).json({ accessToken });
+    const newRefreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.status(200).json({ accessToken, refreshToken: newRefreshToken });
   } catch (error) {
     res.sendStatus(403);
   }
