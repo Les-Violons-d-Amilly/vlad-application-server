@@ -6,16 +6,11 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
-import UserDocument from "../model/User";
+import UserDocument, { Sex } from "../model/User";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in the environment variables");
-}
-
-enum Sex {
-  Female,
-  Male,
 }
 
 type RegisterProps = Readonly<{

@@ -7,14 +7,10 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import { parse } from "csv-parse";
+import { Sex } from "../model/User";
 
 const router = Router();
 const upload = multer();
-
-enum Sex {
-  Female,
-  Male,
-}
 
 type RawUser = {
   age: string;
@@ -115,7 +111,7 @@ router.post("/import", upload.single("file"), async (req, res) => {
           email: record.email.trim(),
           group: record.group.replace(/\s{2,}/, " ").trim(),
           age: parseInt(record.age),
-          sex: +(record.sex === "M") as Sex,
+          sex: (record.sex.trim() === "F" ? "female" : "male") as Sex,
           password: randomPassword(10),
         });
       }
