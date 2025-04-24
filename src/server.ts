@@ -34,7 +34,7 @@ app.use(
   })
 );
 
-app.use("/avatars", express.static(path.join(__dirname, "uploads/avatars")));
+app.use("/avatars", express.static(path.join(__dirname, "../uploads")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api", routes);

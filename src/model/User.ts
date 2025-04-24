@@ -11,6 +11,7 @@ type UserDocument = Document & {
   lastName: string;
   email: string;
   hash: string;
+  provisoryPassword: boolean;
   refreshToken?: string;
   sex: Sex;
   avatar: string | null;

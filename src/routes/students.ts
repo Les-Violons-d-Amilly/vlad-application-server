@@ -171,7 +171,7 @@ router.put(
     }
 
     const fileName = `${req.user.id}-${Date.now()}.png`;
-    const uploadDir = path.join(__dirname, "../uploads/avatars");
+    const uploadDir = path.join(__dirname, "../../uploads");
     const outputPath = path.join(uploadDir, fileName);
 
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -201,11 +201,7 @@ router.delete("/@me/avatar", async (req, res): Promise<any> => {
       return res.status(400).json({ message: "No avatar to delete" });
     }
 
-    const avatarPath = path.join(
-      __dirname,
-      "../uploads/avatars",
-      req.user.avatar
-    );
+    const avatarPath = path.join(__dirname, "../../uploads", req.user.avatar);
 
     fs.unlinkSync(avatarPath);
     req.user.avatar = null;

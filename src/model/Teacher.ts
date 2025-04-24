@@ -9,6 +9,7 @@ const TeacherSchema = new Schema<UserDocument>(
     lastName: { type: String, required: true },
     email: { type: String, required: true },
     hash: { type: String, required: true },
+    provisoryPassword: { type: Boolean, default: true },
     refreshToken: { type: String, required: false },
     sex: { type: Number, required: true },
     avatar: { type: String, default: null, required: false },
