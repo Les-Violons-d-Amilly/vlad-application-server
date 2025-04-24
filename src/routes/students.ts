@@ -1,8 +1,7 @@
 import "dotenv/config";
 import { Router } from "express";
 import omit from "../utils/omit";
-import { CustomRequest } from "../utils/authentication";
-import { deleteOne, getById, register, registerMany } from "../service/user";
+import { deleteOne, getById, registerMany } from "../service/user";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -65,12 +64,16 @@ function randomPassword(length: number, options?: RandomPasswordOptions) {
   if (options.symbols) charset += symbols;
 
   let password = "";
+
   if (options.lowercase)
     password += lowercase[Math.floor(Math.random() * lowercase.length)];
+
   if (options.uppercase)
     password += uppercase[Math.floor(Math.random() * uppercase.length)];
+
   if (options.numbers)
     password += numbers[Math.floor(Math.random() * numbers.length)];
+
   if (options.symbols)
     password += symbols[Math.floor(Math.random() * symbols.length)];
 
@@ -140,9 +143,7 @@ router.post("/import", upload.single("file"), async (req, res) => {
 
 router.get("/@me", async (req, res): Promise<any> => {
   try {
-    res
-      .status(200)
-      .json(omit((req as CustomRequest).user.toJSON(), "hash", "refreshToken"));
+    res.status(200).json(omit(req.user.toJSON(), "hash", "refreshToken"));
   } catch (err) {
     res.status(401).json({ message: "Unauthorized" });
   }
@@ -150,7 +151,7 @@ router.get("/@me", async (req, res): Promise<any> => {
 
 router.delete("/@me", async (req, res): Promise<any> => {
   try {
-    await deleteOne((req as CustomRequest).user.id);
+    await deleteOne(req.user.id);
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error });
@@ -169,8 +170,7 @@ router.put(
       return res.status(400).json({ message: "Invalid file type" });
     }
 
-    const user = (req as CustomRequest).user;
-    const fileName = `${user.id}-${Date.now()}.png`;
+    const fileName = `${req.user.id}-${Date.now()}.png`;
     const uploadDir = path.join(__dirname, "../uploads/avatars");
     const outputPath = path.join(uploadDir, fileName);
 
@@ -182,8 +182,8 @@ router.put(
         .png()
         .toFile(outputPath);
 
-      user.avatar = fileName;
-      await user.save();
+      req.user.avatar = fileName;
+      await req.user.save();
 
       res.status(200).json({
         message: "Avatar updated successfully",
@@ -197,17 +197,19 @@ router.put(
 
 router.delete("/@me/avatar", async (req, res): Promise<any> => {
   try {
-    const user = (req as CustomRequest).user;
-
-    if (!user.avatar) {
+    if (!req.user.avatar) {
       return res.status(400).json({ message: "No avatar to delete" });
     }
 
-    const avatarPath = path.join(__dirname, "../uploads/avatars", user.avatar);
+    const avatarPath = path.join(
+      __dirname,
+      "../uploads/avatars",
+      req.user.avatar
+    );
 
     fs.unlinkSync(avatarPath);
-    user.avatar = null;
-    await user.save();
+    req.user.avatar = null;
+    await req.user.save();
   } catch (error) {
     res.status(500).json({ message: error });
   }

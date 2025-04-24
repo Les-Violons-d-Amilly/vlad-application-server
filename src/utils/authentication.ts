@@ -3,12 +3,20 @@ import jwt from "jsonwebtoken";
 import { getById } from "../service/user";
 import { StudentDocument } from "../model/Student";
 
+export enum PermissionLevel {
+  Student = 0,
+  Teacher = 1,
+  Admin = 2,
+}
+
 export type CustomRequest = Request & {
   user: StudentDocument;
+  permissionLevel: PermissionLevel;
 };
 
 export type DecodedToken = {
   id: string;
+  permissionLevel: PermissionLevel;
 };
 
 export const useAuthentication: RequestHandler = async (req, res, next) => {
@@ -29,6 +37,8 @@ export const useAuthentication: RequestHandler = async (req, res, next) => {
     }
 
     (req as CustomRequest).user = user;
+    (req as CustomRequest).permissionLevel = decoded.permissionLevel;
+
     next();
   } catch (error) {
     res.sendStatus(403);
