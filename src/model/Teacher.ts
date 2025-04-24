@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import bcrypt from "bcrypt";
 import type UserDocument from "./User";
 
 const TeacherSchema = new Schema<UserDocument>(
@@ -18,5 +19,16 @@ const TeacherSchema = new Schema<UserDocument>(
   },
   { timestamps: true, versionKey: false, id: true }
 );
+
+TeacherSchema.pre("save", async function (next) {
+  if (!this.isModified("hash")) return next();
+  this.hash = await bcrypt.hash(this.hash, 8);
+  next();
+});
+
+TeacherSchema.pre("save", function (next) {
+  this.updatedAt = new Date();
+  next();
+});
 
 export default model("Teacher", TeacherSchema);
