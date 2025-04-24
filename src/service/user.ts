@@ -1,4 +1,4 @@
-import UserModel, { StudentDocument } from "../model/Student";
+import Student, { StudentDocument } from "../model/Student";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
+import UserDocument from "../model/User";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
@@ -40,13 +41,13 @@ export async function registerUser(user: RegisterProps): Promise<void> {
       .replace(/[^a-z]/g, "")
       .slice(0, 7);
 
-  const existingIdentities = await UserModel.countDocuments({
+  const existingIdentities = await Student.countDocuments({
     identity: { $regex: new RegExp(`^${identity}\\d*$`) },
   });
 
   if (existingIdentities) identity += existingIdentities + 1;
 
-  await UserModel.create({
+  await Student.create({
     firstName: user.firstName.toLowerCase(),
     lastName: user.lastName.toLowerCase(),
     identity: identity,
@@ -122,10 +123,11 @@ export async function registerManyTeachers(
 
 export async function login(user: LoginProps): Promise<{
   accessToken: string;
-  user: StudentDocument;
+  user: UserDocument;
   refreshToken: string;
 }> {
-  const foundUser = await UserModel.findOne({ identity: user.identity });
+  let foundUser = await Student.findOne({ identity: user.identity });
+  foundUser ??= await Teacher.findOne({ identity: user.identity });
   if (!foundUser) throw new Error("Incorrect name");
 
   const isMatch = await bcrypt.compare(user.password, foundUser.hash);
@@ -146,7 +148,7 @@ export async function login(user: LoginProps): Promise<{
 
 export async function getById(id: string): Promise<StudentDocument | null> {
   try {
-    const user = await UserModel.findById(id);
+    const user = await Student.findById(id);
     return user;
   } catch (error: any) {
     throw new Error("Error fetching user by ID: " + error);
@@ -155,7 +157,7 @@ export async function getById(id: string): Promise<StudentDocument | null> {
 
 export async function deleteOne(id: string): Promise<void> {
   try {
-    await UserModel.findByIdAndDelete(id);
+    await Student.findByIdAndDelete(id);
   } catch (error: any) {
     throw new Error("Error deleting user: " + error);
   }
@@ -166,7 +168,7 @@ export async function getUserFromToken(
 ): Promise<StudentDocument> {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-    const user = await UserModel.findById(decoded.id);
+    const user = await Student.findById(decoded.id);
     if (!user) throw new Error("User not found");
     return user.toObject();
   } catch (err) {

@@ -1,6 +1,7 @@
 import { model, Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import type UserDocument from "./User";
+import { Sex } from "./User";
 
 type DurationPerDate = {
   date: string;
@@ -24,7 +25,7 @@ const StudentSchema = new Schema<StudentDocument>(
     refreshToken: { type: String, required: false },
     avatar: { type: String, default: null, required: false },
     age: { type: Number, required: true },
-    sex: { type: Number, required: true },
+    sex: { type: String, enum: Sex, required: true },
     group: { type: String, required: false },
     online: { type: Boolean, default: false },
     lastSeen: { type: Date, default: null },

@@ -1,8 +1,8 @@
 import type { Document } from "mongoose";
 
 export enum Sex {
-  Female,
-  Male,
+  Female = "FEMALE",
+  Male = "MALE",
 }
 
 type UserDocument = Document & {
