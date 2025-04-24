@@ -2,6 +2,7 @@ import UserModel, { StudentDocument } from "../model/Student";
 import dotenv from "dotenv";
 dotenv.config();
 
+import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
@@ -55,6 +56,28 @@ export async function registerUser(user: RegisterProps): Promise<void> {
     age: user.age,
     group: user.group,
   });
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PSWD,
+    },
+  });
+
+  const mailOptions = {
+    from: " Vladnoreply <${process.env.EMAIL_USER>",
+    to: user.email,
+    subject: "TEST VLAD BACKEND NODMAILER",
+    text: "Bonjour ${firstName}, bienvenue !",
+    html: "<b>Voici ton login: </b>",
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("error while sending email:", error);
+  }
 }
 
 export async function registerTeacher(user: RegisterProps): Promise<void> {
