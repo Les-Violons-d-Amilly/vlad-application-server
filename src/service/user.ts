@@ -28,6 +28,8 @@ type LoginProps = Readonly<{
   password: string;
 }>;
 
+type Type = "student" | "teacher";
+
 export async function registerUser(user: RegisterProps): Promise<void> {
   let identity =
     user.firstName[0].toLowerCase() +
@@ -117,12 +119,19 @@ export async function registerManyTeachers(
 }
 
 export async function login(user: LoginProps): Promise<{
-  accessToken: string;
   user: UserDocument;
+  type: Type;
+  accessToken: string;
   refreshToken: string;
 }> {
   let foundUser = await Student.findOne({ identity: user.identity });
-  foundUser ??= await Teacher.findOne({ identity: user.identity });
+  let type: Type = "student";
+
+  if (!foundUser) {
+    foundUser = await Teacher.findOne({ identity: user.identity });
+    type = "teacher";
+  }
+
   if (!foundUser) throw new Error("Incorrect name");
 
   const isMatch = await bcrypt.compare(user.password, foundUser.hash);
@@ -138,7 +147,7 @@ export async function login(user: LoginProps): Promise<{
   foundUser.refreshToken = refreshToken;
   await foundUser.save();
 
-  return { user: foundUser.toObject(), accessToken, refreshToken };
+  return { user: foundUser.toObject(), type, accessToken, refreshToken };
 }
 
 export async function getById(id: string): Promise<StudentDocument | null> {

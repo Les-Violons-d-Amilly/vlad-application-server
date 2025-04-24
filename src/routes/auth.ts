@@ -67,10 +67,11 @@ router.post(
 
 router.post("/login", async (req: Request, res: Response) => {
   try {
-    const { accessToken, user, refreshToken } = await login(req.body);
+    const { accessToken, user, type, refreshToken } = await login(req.body);
 
     res.status(200).json({
       user: omit(user, "hash", "refreshToken"),
+      type,
       accessToken,
       refreshToken,
     });
