@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Router } from "express";
 import omit from "../utils/omit";
-import { deleteOne, getById, registerMany } from "../service/user";
+import { deleteOne, getById, registerManyUsers } from "../service/user";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -128,7 +128,7 @@ router.post("/import", upload.single("file"), async (req, res) => {
 
     parser.on("end", async () => {
       console.log("CSV file parsed successfully:", records);
-      const count = await registerMany(records);
+      const count = await registerManyUsers(records);
       res.status(201).json({ message: `Registered ${count} students.` });
     });
 

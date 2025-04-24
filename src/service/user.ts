@@ -4,6 +4,7 @@ dotenv.config();
 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Teacher from "../model/Teacher";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
@@ -30,7 +31,7 @@ type LoginProps = Readonly<{
   password: string;
 }>;
 
-export async function register(user: RegisterProps): Promise<void> {
+export async function registerUser(user: RegisterProps): Promise<void> {
   let identity =
     user.firstName[0].toLowerCase() +
     user.lastName
@@ -56,8 +57,42 @@ export async function register(user: RegisterProps): Promise<void> {
   });
 }
 
-export async function registerMany(users: RegisterProps[]): Promise<number> {
-  const userPromises = users.map((user) => register(user));
+export async function registerTeacher(user: RegisterProps): Promise<void> {
+  let identity =
+    user.firstName[0].toLowerCase() +
+    user.lastName
+      .toLowerCase()
+      .replace(/[^a-z]/g, "")
+      .slice(0, 7);
+
+  const existingIdentities = await Teacher.countDocuments({
+    identity: { $regex: new RegExp(`^${identity}\\d*$`) },
+  });
+
+  if (existingIdentities) identity += existingIdentities + 1;
+
+  await Teacher.create({
+    firstName: user.firstName.toLowerCase(),
+    lastName: user.lastName.toLowerCase(),
+    identity: identity,
+    hash: user.password,
+    email: user.email,
+    sex: user.sex,
+  });
+}
+
+export async function registerManyUsers(
+  users: RegisterProps[]
+): Promise<number> {
+  const userPromises = users.map((user) => registerUser(user));
+  await Promise.all(userPromises);
+  return users.length;
+}
+
+export async function registerManyTeachers(
+  users: RegisterProps[]
+): Promise<number> {
+  const userPromises = users.map((user) => registerTeacher(user));
   await Promise.all(userPromises);
   return users.length;
 }
