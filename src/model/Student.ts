@@ -1,32 +1,16 @@
-import { type Document, model, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 import bcrypt from "bcrypt";
+import type UserDocument from "./User";
 
 type DurationPerDate = {
   date: string;
   duration: number;
 };
 
-enum Sex {
-  Female,
-  Male,
-}
-
-export interface StudentDocument extends Document {
-  identity: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  hash: string;
-  refreshToken?: string;
+export interface StudentDocument extends UserDocument {
   age: number;
-  sex: Sex;
-  avatar: string | null;
   group: string;
   timeOnApp: DurationPerDate[];
-  online: boolean;
-  lastSeen: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const StudentSchema = new Schema<StudentDocument>(
@@ -69,4 +53,4 @@ StudentSchema.pre("save", function (next) {
   next();
 });
 
-export default model<StudentDocument>("User", StudentSchema);
+export default model<StudentDocument>("Student", StudentSchema);

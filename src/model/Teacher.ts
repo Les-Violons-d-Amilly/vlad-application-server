@@ -1,26 +1,7 @@
-import { Schema, type Document, model } from "mongoose";
+import { Schema, model } from "mongoose";
+import type UserDocument from "./User";
 
-enum Sex {
-  Female,
-  Male,
-}
-
-export interface TeacherDocument extends Document {
-  identity: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  hash: string;
-  refreshToken?: string;
-  sex: Sex;
-  avatar: string | null;
-  online: boolean;
-  lastSeen: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const TeacherSchema = new Schema<TeacherDocument>(
+const TeacherSchema = new Schema<UserDocument>(
   {
     identity: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
