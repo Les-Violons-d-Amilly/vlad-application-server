@@ -19,7 +19,7 @@ router.post(
         .max(64)
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
         .required(),
-      sex: Joi.number().min(0).max(1).required(),
+      sex: Joi.string().valid("male", "female").required(),
       age: Joi.number().required(),
       group: Joi.string().required(),
     }).validate(req.body);
@@ -49,7 +49,7 @@ router.post(
         .max(64)
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
         .required(),
-      sex: Joi.number().min(0).max(1).required(),
+      sex: Joi.string().valid("male", "female").required(),
     }).validate(req.body);
 
     if (error) {
