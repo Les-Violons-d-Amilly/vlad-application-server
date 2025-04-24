@@ -3,11 +3,7 @@ import { getById, login, register } from "../service/user";
 import omit from "../utils/omit";
 import jwt from "jsonwebtoken";
 import Joi from "joi";
-import {
-  CustomRequest,
-  DecodedToken,
-  useAuthentication,
-} from "../utils/authentication";
+import { DecodedToken, useAuthentication } from "../utils/authentication";
 
 const router = Router();
 
@@ -54,14 +50,8 @@ router.post("/login", async (req: Request, res: Response) => {
 
 router.post("/logout", useAuthentication, async (req, res): Promise<any> => {
   try {
-    const id = (req as CustomRequest).user?.id;
-    if (!id) return res.sendStatus(401);
-
-    const user = await getById(id);
-    if (!user) return res.sendStatus(404);
-
-    user.refreshToken = undefined;
-    await user.save();
+    req.user.refreshToken = undefined;
+    await req.user.save();
 
     res.status(200).json({ message: "Logged out successfully" });
   } catch (err) {
