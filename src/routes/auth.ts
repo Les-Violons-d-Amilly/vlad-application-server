@@ -1,5 +1,11 @@
 import { Request, Response, Router } from "express";
-import { getById, login, registerUser, registerTeacher } from "../service/user";
+import {
+  getStudentById,
+  login,
+  registerUser,
+  registerTeacher,
+  getTeacherById,
+} from "../service/user";
 import omit from "../utils/omit";
 import jwt from "jsonwebtoken";
 import Joi from "joi";
@@ -101,7 +107,12 @@ router.post("/refresh", async (req: Request, res: Response): Promise<any> => {
       process.env.JWT_SECRET!
     ) as DecodedToken;
 
-    const user = await getById(decoded.id);
+    const users = await Promise.all([
+      getStudentById(decoded.id),
+      getTeacherById(decoded.id),
+    ]);
+
+    const user = users[0] ?? users[1];
 
     if (!user || user.refreshToken !== refreshToken) {
       return res.sendStatus(403);

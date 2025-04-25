@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Router } from "express";
 import omit from "../utils/omit";
-import { deleteOne, getById, registerManyUsers } from "../service/user";
+import { deleteOne, getStudentById, registerManyUsers } from "../service/user";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -209,7 +209,7 @@ router.delete("/@me/avatar", async (req, res): Promise<any> => {
 
 router.get("/:id", async (req, res): Promise<any> => {
   try {
-    const user = await getById(req.params.id);
+    const user = await getStudentById(req.params.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

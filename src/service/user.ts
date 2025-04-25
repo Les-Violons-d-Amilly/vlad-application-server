@@ -152,9 +152,20 @@ export async function login(user: LoginProps): Promise<{
   return { user: foundUser.toObject(), type, accessToken, refreshToken };
 }
 
-export async function getById(id: string): Promise<StudentDocument | null> {
+export async function getStudentById(
+  id: string
+): Promise<StudentDocument | null> {
   try {
     const user = await Student.findById(id);
+    return user;
+  } catch (error: any) {
+    throw new Error("Error fetching user by ID: " + error);
+  }
+}
+
+export async function getTeacherById(id: string): Promise<UserDocument | null> {
+  try {
+    const user = await Teacher.findById(id);
     return user;
   } catch (error: any) {
     throw new Error("Error fetching user by ID: " + error);
