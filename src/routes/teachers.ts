@@ -5,6 +5,7 @@ import Joi from "joi";
 const router = Router();
 
 import rateLimit from "express-rate-limit";
+import { getTeacherById } from "../service/user";
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -37,11 +38,23 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/@me", async (req: Request, res: Response): Promise<any> => {
+  try {
+    const teacher = await getTeacherById(req.user.id);
+    if (!teacher) {
+      return res.status(404).send("Teacher not found");
+    }
+    return res.json(teacher);
+  } catch (error) {
+    return res.status(500).send("Server error");
+  }
+});
+
 // getting a teacher by id
 router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
     const id = req.params.id;
-    const teacher = await teacherService.getTeacherById(id);
+    const teacher = await getTeacherById(id);
     if (!teacher) {
       return res.status(404).send("Teacher not found");
     }
