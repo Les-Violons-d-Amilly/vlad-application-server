@@ -19,7 +19,7 @@ router.post(
         .max(64)
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
         .required(),
-      sex: Joi.number().min(0).max(1).required(),
+      sex: Joi.string().valid("male", "female").required(),
       age: Joi.number().required(),
       group: Joi.string().required(),
     }).validate(req.body);
@@ -49,7 +49,7 @@ router.post(
         .max(64)
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
         .required(),
-      sex: Joi.number().min(0).max(1).required(),
+      sex: Joi.string().valid("male", "female").required(),
     }).validate(req.body);
 
     if (error) {
@@ -67,10 +67,11 @@ router.post(
 
 router.post("/login", async (req: Request, res: Response) => {
   try {
-    const { accessToken, user, refreshToken } = await login(req.body);
+    const { accessToken, user, type, refreshToken } = await login(req.body);
 
     res.status(200).json({
       user: omit(user, "hash", "refreshToken"),
+      type,
       accessToken,
       refreshToken,
     });

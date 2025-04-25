@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
 import type UserDocument from "./User";
+import { Sex } from "./User";
 
 const TeacherSchema = new Schema<UserDocument>(
   {
@@ -9,8 +10,9 @@ const TeacherSchema = new Schema<UserDocument>(
     lastName: { type: String, required: true },
     email: { type: String, required: true },
     hash: { type: String, required: true },
+    provisoryPassword: { type: Boolean, default: true },
     refreshToken: { type: String, required: false },
-    sex: { type: Number, required: true },
+    sex: { type: String, enum: Sex, required: true },
     avatar: { type: String, default: null, required: false },
     online: { type: Boolean, default: false },
     lastSeen: { type: Date, default: null },

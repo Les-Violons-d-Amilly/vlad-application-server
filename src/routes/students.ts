@@ -7,14 +7,10 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import { parse } from "csv-parse";
+import { Sex } from "../model/User";
 
 const router = Router();
 const upload = multer();
-
-enum Sex {
-  Female,
-  Male,
-}
 
 type RawUser = {
   age: string;
@@ -115,7 +111,7 @@ router.post("/import", upload.single("file"), async (req, res) => {
           email: record.email.trim(),
           group: record.group.replace(/\s{2,}/, " ").trim(),
           age: parseInt(record.age),
-          sex: +(record.sex === "M") as Sex,
+          sex: (record.sex.trim() === "F" ? "female" : "male") as Sex,
           password: randomPassword(10),
         });
       }
@@ -171,7 +167,7 @@ router.put(
     }
 
     const fileName = `${req.user.id}-${Date.now()}.png`;
-    const uploadDir = path.join(__dirname, "../uploads/avatars");
+    const uploadDir = path.join(__dirname, "../../uploads");
     const outputPath = path.join(uploadDir, fileName);
 
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -201,11 +197,7 @@ router.delete("/@me/avatar", async (req, res): Promise<any> => {
       return res.status(400).json({ message: "No avatar to delete" });
     }
 
-    const avatarPath = path.join(
-      __dirname,
-      "../uploads/avatars",
-      req.user.avatar
-    );
+    const avatarPath = path.join(__dirname, "../../uploads", req.user.avatar);
 
     fs.unlinkSync(avatarPath);
     req.user.avatar = null;
