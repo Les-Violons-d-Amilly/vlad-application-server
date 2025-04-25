@@ -1,7 +1,7 @@
 import { Request, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import { getById } from "../service/user";
-import { StudentDocument } from "../model/Student";
+import { getStudentById, getTeacherById } from "../service/user";
+import UserDocument from "../model/User";
 
 export enum PermissionLevel {
   Student = 0,
@@ -10,7 +10,7 @@ export enum PermissionLevel {
 }
 
 export type CustomRequest = Request & {
-  user: StudentDocument;
+  user: UserDocument;
   permissionLevel: PermissionLevel;
 };
 
@@ -29,7 +29,12 @@ export const useAuthentication: RequestHandler = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
-    const user = await getById(decoded.id);
+    const users = await Promise.all([
+      getStudentById(decoded.id),
+      getTeacherById(decoded.id),
+    ]);
+
+    const user = users[0] ?? users[1];
 
     if (!user) {
       res.sendStatus(403);
