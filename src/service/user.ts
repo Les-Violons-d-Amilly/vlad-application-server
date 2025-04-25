@@ -66,15 +66,17 @@ export async function registerUser(user: RegisterProps): Promise<void> {
   });
 
   const mailOptions = {
-    from: " Vladnoreply <${process.env.EMAIL_USER>",
+    from: `Vladnoreply <${process.env.EMAIL_USER}>`,
     to: user.email,
     subject: "TEST VLAD BACKEND NODMAILER",
-    text: "Bonjour ${firstName}, bienvenue !",
-    html: "<b>Voici ton login: </b>",
+    text: `Bonjour ${user.firstName},\nVoici ton login: ${identity}\nMot de passe: ${user.password}`,
+    html: `<p>Bonjour <b>${user.firstName}</b>,</p>
+         <p>Voici ton login: <b>${identity}</b><br>
+         Mot de passe: <b>${user.password}</b></p>`,
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
   } catch (error) {
     console.error("error while sending email:", error);
   }
