@@ -1,17 +1,18 @@
+import "dotenv/config";
 import Student, { StudentDocument } from "../model/Student";
-import dotenv from "dotenv";
-dotenv.config();
-
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
 import UserDocument, { Sex } from "../model/User";
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in the environment variables");
-}
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PSWD,
+  },
+});
 
 type RegisterProps = Readonly<{
   firstName: string;
@@ -21,6 +22,7 @@ type RegisterProps = Readonly<{
   sex: Sex;
   age: number;
   group: string;
+  sendMail: boolean;
 }>;
 
 type LoginProps = Readonly<{
@@ -30,10 +32,10 @@ type LoginProps = Readonly<{
 
 type Type = "student" | "teacher";
 
-export async function registerUser(user: RegisterProps): Promise<void> {
+export async function registerUser(payload: RegisterProps): Promise<void> {
   let identity =
-    user.firstName[0].toLowerCase() +
-    user.lastName
+    payload.firstName[0].toLowerCase() +
+    payload.lastName
       .toLowerCase()
       .replace(/[^a-z]/g, "")
       .slice(0, 7);
@@ -44,33 +46,47 @@ export async function registerUser(user: RegisterProps): Promise<void> {
 
   if (existingIdentities) identity += existingIdentities + 1;
 
-  await Student.create({
-    firstName: user.firstName.toLowerCase(),
-    lastName: user.lastName.toLowerCase(),
+  const user = await Student.create({
+    firstName: payload.firstName.toLowerCase(),
+    lastName: payload.lastName.toLowerCase(),
     identity: identity,
-    hash: user.password,
-    email: user.email,
-    sex: user.sex,
-    age: user.age,
-    group: user.group,
+    hash: payload.password,
+    email: payload.email,
+    sex: payload.sex,
+    age: payload.age,
+    group: payload.group,
   });
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PSWD,
-    },
+  if (!payload.sendMail) return;
+
+  const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
+    expiresIn: "1h",
   });
+
+  const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
+    expiresIn: "7d",
+  });
+
+  user.refreshToken = refreshToken;
+  await user.save();
+
+  const mailHTMLBody = /* html */ `
+    <h2>Bonjour <b>${payload.firstName}</b></h2>
+    <p>Vous avez été inscrit à l'application VLAD.</p>
+    <h3>Voici vos identifiants de connexion:</h3>
+    <p>Identifiant: <b>${identity}</b><br>
+    <p>Mot de passe: <b>${payload.password}</b></p>
+    <p>Connectez-vous à l'application VLAD en cliquant sur le lien ci-dessous:</p>
+    <p><a href="http://192.168.1.108:8080/auth/redirect?user_id=${user.id}&refreshToken=${refreshToken}&accessToken=${accessToken}">Se Connecter</a></p>`;
+
+  const mailTextBody = mailHTMLBody.replace(/<[^>]+>/g, "");
 
   const mailOptions = {
-    from: `Vladnoreply <${process.env.EMAIL_USER}>`,
-    to: user.email,
-    subject: "TEST VLAD BACKEND NODMAILER",
-    text: `Bonjour ${user.firstName},\nVoici ton login: ${identity}\nMot de passe: ${user.password}`,
-    html: `<p>Bonjour <b>${user.firstName}</b>,</p>
-         <p>Voici ton login: <b>${identity}</b><br>
-         Mot de passe: <b>${user.password}</b></p>`,
+    from: `VLADnoreply <${process.env.EMAIL_USER}>`,
+    to: payload.email,
+    subject: "Identifiant VLAD",
+    text: mailTextBody,
+    html: mailHTMLBody,
   };
 
   try {
@@ -139,12 +155,17 @@ export async function login(user: LoginProps): Promise<{
   const isMatch = await bcrypt.compare(user.password, foundUser.hash);
   if (!isMatch) throw new Error("Incorrect hash");
 
-  const accessToken = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
+  const accessToken = jwt.sign({ id: foundUser._id }, process.env.JWT_SECRET!, {
     expiresIn: "1h",
   });
-  const refreshToken = jwt.sign({ id: foundUser._id }, JWT_SECRET, {
-    expiresIn: "7d",
-  });
+
+  const refreshToken = jwt.sign(
+    { id: foundUser._id },
+    process.env.JWT_SECRET!,
+    {
+      expiresIn: "7d",
+    }
+  );
 
   foundUser.refreshToken = refreshToken;
   await foundUser.save();
@@ -184,7 +205,10 @@ export async function getUserFromToken(
   token: string
 ): Promise<StudentDocument> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      id: string;
+    };
+
     const user = await Student.findById(decoded.id);
     if (!user) throw new Error("User not found");
     return user.toObject();

@@ -29,6 +29,7 @@ type ParsedUser = {
   firstName: string;
   sex: Sex;
   password: string;
+  sendMail: boolean;
 };
 
 type RandomPasswordOptions = {
@@ -113,6 +114,7 @@ router.post("/import", upload.single("file"), async (req, res) => {
           age: parseInt(record.age),
           sex: (record.sex.trim() === "F" ? "female" : "male") as Sex,
           password: randomPassword(10),
+          sendMail: false,
         });
       }
     });

@@ -28,6 +28,7 @@ router.post(
       sex: Joi.string().valid("male", "female").required(),
       age: Joi.number().required(),
       group: Joi.string().required(),
+      sendMail: Joi.boolean().default(false),
     }).validate(req.body);
 
     if (error) {

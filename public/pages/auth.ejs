@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vlad - Authentification</title>
+    <link rel="stylesheet" href="/auth/styles/auth.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+      rel="stylesheet"
+    />
+    <% if (onMobile) { %>
+      <meta http-equiv="refresh" content="0; url=exp://192.168.1.108:8081?userId=<%= user._id %>&accessToken=<%= accessToken %>&refreshToken=<%= refreshToken %>" />
+    <% } %>
+  </head>
+  <body>
+    <main>
+      <% if (onMobile) { %>
+        <h3>Veuillez patienter...</h3>
+        <p>Vous serez redirigé vers l'application mobile.</p>
+        <a href="javascript:window.location.reload()">Rafraîchir</a>
+      <% } else { %>
+      <h3>Salut <%= user.firstName %> <%= user.lastName %> !</h3>
+      <p>Vous devez vous connecter à l'application mobile pour continuer.</p>
+      <p>Veuillez scanner le code QR ci-dessous :</p>
+      <img
+        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=exp://192.168.1.108:8081?userId=<%= user._id %>&accessToken=<%= accessToken %>&refreshToken=<%= refreshToken %>"
+        alt="QR Code"
+        class="qr-code"
+      />
+      <% } %>
+    </div>
+  </body>
+</html>

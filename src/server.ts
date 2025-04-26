@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import routes from "./routes";
+import auth from "./auth";
 import swaggerDocsMiddleware from "./swagger";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -19,6 +20,8 @@ db.once("open", () => {
 });
 
 const app = express();
+
+app.set("view engine", "ejs");
 
 app.use(
   cors({
@@ -38,9 +41,10 @@ app.use("/avatars", express.static(path.join(__dirname, "../uploads")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api", routes);
+app.use("/auth", auth);
 
 const server = app.listen(process.env.PORT, () => {
-  console.log("Server running at PORT: ", process.env.PORT);
+  console.log("Server running at PORT:", process.env.PORT);
   swaggerDocsMiddleware(app, process.env.PORT || "5000");
 });
 
