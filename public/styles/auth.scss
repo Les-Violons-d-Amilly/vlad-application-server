@@ -5,20 +5,21 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100dvw;
+  height: 100dvh;
   overflow-x: hidden;
 
   main {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100dvh;
+    height: 100%;
 
     section {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      border-radius: 1rem;
-      padding: 2rem;
+      border-radius: 0.5rem;
+      padding: 1.75rem;
       gap: 1.5rem;
       border: 1px solid #ddd;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);

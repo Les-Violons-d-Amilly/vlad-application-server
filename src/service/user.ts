@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
 import UserDocument, { Sex } from "../model/User";
+import capitalize from "../utils/capitalize";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -71,13 +72,43 @@ export async function registerUser(payload: RegisterProps): Promise<void> {
   await user.save();
 
   const mailHTMLBody = /* html */ `
-    <h2>Bonjour <b>${payload.firstName}</b></h2>
-    <p>Vous avez été inscrit à l'application VLAD.</p>
-    <h3>Voici vos identifiants de connexion:</h3>
-    <p>Identifiant: <b>${identity}</b><br>
-    <p>Mot de passe: <b>${payload.password}</b></p>
-    <p>Connectez-vous à l'application VLAD en cliquant sur le lien ci-dessous:</p>
-    <p><a href="http://192.168.1.108:8080/auth/redirect?user_id=${user.id}&refreshToken=${refreshToken}&accessToken=${accessToken}">Se Connecter</a></p>`;
+  <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f9f9f9;">
+  <h2 style="color: #2c3e50;">Bienvenue, <b>${capitalize(
+    payload.firstName
+  )}</b> !</h2>
+  <p style="font-size: 16px; color: #555;">
+    Nous sommes ravis de vous accueillir sur <b>l'application VLAD</b> !
+  </p>
+  <h3 style="color: #2c3e50; margin-top: 30px;">🔑 Vos identifiants de connexion :</h3>
+  <div style="background-color: #ffffff; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px;">
+    <p style="font-size: 16px; color: #555; margin: 5px 0;">
+      <b>Identifiant :</b> ${identity}
+    </p>
+    <p style="font-size: 16px; color: #555; margin: 5px 0;">
+      <b>Mot de passe :</b> ${payload.password}
+    </p>
+  </div>
+  <p style="font-size: 16px; color: #555;">
+    <b>Note :</b> Ne partagez jamais vos identifiants avec qui que ce soit. Si vous avez des doutes sur la sécurité de votre compte, n'hésitez pas à changer votre mot de passe.
+  </p>
+  <p style="font-size: 16px; color: #555;">
+    Vous pouvez dès maintenant vous connecter à votre compte en cliquant sur le bouton ci-dessous :
+  </p>
+  <div style="text-align: center; margin: 20px 0;">
+    <a href="http://192.168.1.108:8080/auth/redirect?user_id=${
+      user.id
+    }&refreshToken=${refreshToken}&accessToken=${accessToken}"
+        style="font-size: 18px; color: white; background-color: #4CAF50; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block;">
+      🚀 Se connecter
+    </a>
+  </div>
+  <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;">
+  <p style="font-size: 14px; color: #999; text-align: center;">
+    Si vous avez des questions ou besoin d'aide, n'hésitez pas à nous contacter.<br>
+    Merci de votre confiance et à très bientôt sur <b>VLAD</b> !
+  </p>
+</div>
+    `;
 
   const mailTextBody = mailHTMLBody.replace(/<[^>]+>/g, "");
 
