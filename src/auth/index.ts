@@ -28,6 +28,7 @@ router.get("/redirect", async (req, res) => {
     refreshToken,
     accessToken,
     onMobile,
+    year: new Date().getFullYear(),
   });
 });
 

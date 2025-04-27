@@ -8,6 +8,7 @@ import fs from "fs";
 import sharp from "sharp";
 import { parse } from "csv-parse";
 import { Sex } from "../model/User";
+import { PermissionLevel } from "../utils/authentication";
 
 const router = Router();
 const upload = multer();
@@ -217,17 +218,21 @@ router.get("/:id", async (req, res): Promise<any> => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res
-      .status(200)
-      .json(
-        omit(
-          user.toJSON(),
-          "hash",
-          "refreshToken",
-          "email",
-          "provisoryPassword"
-        )
-      );
+    if (req.permissionLevel === PermissionLevel.Student) {
+      res
+        .status(200)
+        .json(
+          omit(
+            user.toJSON(),
+            "hash",
+            "refreshToken",
+            "email",
+            "provisoryPassword"
+          )
+        );
+    } else {
+      res.status(200).json(omit(user.toJSON(), "hash", "refreshToken"));
+    }
   } catch (error) {
     res.status(500).json({ message: error });
   }

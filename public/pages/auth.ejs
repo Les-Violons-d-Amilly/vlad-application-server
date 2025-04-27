@@ -12,25 +12,40 @@
       rel="stylesheet"
     />
     <% if (onMobile) { %>
-      <meta http-equiv="refresh" content="0; url=exp://192.168.1.108:8081?userId=<%= user._id %>&accessToken=<%= accessToken %>&refreshToken=<%= refreshToken %>" />
+    <meta
+      http-equiv="refresh"
+      content="0; url=exp://192.168.1.108:8081?userId=<%= user._id %>&accessToken=<%= accessToken %>&refreshToken=<%= refreshToken %>"
+    />
     <% } %>
   </head>
   <body>
     <main>
-      <% if (onMobile) { %>
+      <section>
+        <% if (onMobile) { %>
         <h3>Veuillez patienter...</h3>
         <p>Vous serez redirigé vers l'application mobile.</p>
         <a href="javascript:window.location.reload()">Rafraîchir</a>
-      <% } else { %>
-      <h3>Salut <%= user.firstName %> <%= user.lastName %> !</h3>
-      <p>Vous devez vous connecter à l'application mobile pour continuer.</p>
-      <p>Veuillez scanner le code QR ci-dessous :</p>
-      <img
-        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=exp://192.168.1.108:8081?userId=<%= user._id %>&accessToken=<%= accessToken %>&refreshToken=<%= refreshToken %>"
-        alt="QR Code"
-        class="qr-code"
-      />
-      <% } %>
-    </div>
+        <% } else { %>
+        <h3 class="title">&#128075; Salut <%= user.firstName %> !</h3>
+        <p class="description">
+          L'application est disponible uniquement sur mobile.
+        </p>
+        <div class="qr-code-container">
+          <p class="scan-code">Veuillez scanner le code QR ci-dessous :</p>
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=exp://192.168.1.108:8081?userId=<%= user._id %>&accessToken=<%= accessToken %>&refreshToken=<%= refreshToken %>"
+            alt="QR Code"
+            class="qr-code"
+          />
+        </div>
+        <% } %>
+      </section>
+    </main>
+    <footer>
+      <p class="copyright">© <%= year %>, Les violons d'Amilly</p>
+      <div class="links">
+        <a href="https://news.lesviolonsdamilly.org/">Site Principal</a>
+      </div>
+    </footer>
   </body>
 </html>
