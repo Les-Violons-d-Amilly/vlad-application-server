@@ -42,7 +42,7 @@ body {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 0.5rem;
+        gap: 1rem;
 
         .scan-code {
           font-size: 0.8rem;
@@ -57,10 +57,45 @@ body {
     width: 100dvw;
     padding: 1rem 15dvw;
     border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
 
-    .copyright {
-      font-size: 0.8rem;
-      color: #666;
+    .footer-content {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+
+      .copyright {
+        font-size: 0.8rem;
+        color: #666;
+      }
+
+      .socials {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+
+        a {
+          display: flex;
+          align-items: center;
+        }
+      }
+    }
+
+    .links {
+      display: flex;
+      gap: 1rem;
+
+      a {
+        font-size: 0.8rem;
+        color: #007bff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
     }
   }
 }

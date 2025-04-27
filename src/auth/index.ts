@@ -45,13 +45,4 @@ fs.readdirSync(path.join(__dirname, "../../public/styles")).forEach((file) => {
   });
 });
 
-fs.readdirSync(path.join(__dirname, "../../public/scripts")).forEach((file) => {
-  router.get(`/scripts/${file}`, async (req, res) => {
-    const jsPath = path.join(__dirname, "../../public/scripts", file);
-    const js = fs.readFileSync(jsPath, "utf-8");
-    res.setHeader("Content-Type", "application/javascript");
-    res.send(js);
-  });
-});
-
 export default router;
