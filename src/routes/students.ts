@@ -6,86 +6,11 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import sharp from "sharp";
-import { parse } from "csv-parse";
-import { Sex } from "../model/User";
 import { PermissionLevel } from "../utils/authentication";
+import { parseStudentCsv } from "../utils/parseCsv";
 
 const router = Router();
 const upload = multer();
-
-type RawUser = {
-  age: string;
-  group: string;
-  email: string;
-  lastName: string;
-  firstName: string;
-  sex: string;
-};
-
-type ParsedUser = {
-  age: number;
-  group: string;
-  email: string;
-  lastName: string;
-  firstName: string;
-  sex: Sex;
-  password: string;
-  sendMail: boolean;
-};
-
-type RandomPasswordOptions = {
-  lowercase: boolean;
-  uppercase: boolean;
-  numbers: boolean;
-  symbols: boolean;
-};
-
-function randomPassword(length: number, options?: RandomPasswordOptions) {
-  const lowercase = "abcdefghijklmnopqrstuvwxyz";
-  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const numbers = "0123456789";
-  const symbols = "!@#$%^&*()_+[]{}|;:,.<>?";
-
-  if (!options) {
-    options = {
-      lowercase: true,
-      uppercase: true,
-      numbers: true,
-      symbols: true,
-    };
-  }
-
-  let charset = "";
-  if (options.lowercase) charset += lowercase;
-  if (options.uppercase) charset += uppercase;
-  if (options.numbers) charset += numbers;
-  if (options.symbols) charset += symbols;
-
-  let password = "";
-
-  if (options.lowercase)
-    password += lowercase[Math.floor(Math.random() * lowercase.length)];
-
-  if (options.uppercase)
-    password += uppercase[Math.floor(Math.random() * uppercase.length)];
-
-  if (options.numbers)
-    password += numbers[Math.floor(Math.random() * numbers.length)];
-
-  if (options.symbols)
-    password += symbols[Math.floor(Math.random() * symbols.length)];
-
-  for (let i = password.length; i < length; i++) {
-    password += charset[Math.floor(Math.random() * charset.length)];
-  }
-
-  password = password
-    .split("")
-    .sort(() => Math.random() - 0.5)
-    .join("");
-
-  return password;
-}
 
 router.post("/import", upload.single("file"), async (req, res) => {
   if (!req.file) {
@@ -94,45 +19,12 @@ router.post("/import", upload.single("file"), async (req, res) => {
   }
 
   try {
-    const records: ParsedUser[] = [];
-    const parser = parse({
-      delimiter: ";",
-      encoding: "latin1",
-      columns: () => ["age", "group", "email", "lastName", "firstName", "sex"],
-      trim: true,
-      skip_empty_lines: true,
-    });
+    const students = await parseStudentCsv(req.file.buffer);
+    await registerManyUsers(students);
 
-    parser.on("readable", async () => {
-      let record: RawUser;
-
-      while ((record = parser.read())) {
-        records.push({
-          firstName: record.firstName.toLowerCase().trim(),
-          lastName: record.lastName.toLowerCase().trim(),
-          email: record.email.trim(),
-          group: record.group.replace(/\s{2,}/, " ").trim(),
-          age: parseInt(record.age),
-          sex: (record.sex.trim() === "F" ? "female" : "male") as Sex,
-          password: randomPassword(10),
-          sendMail: false,
-        });
-      }
-    });
-
-    parser.on("error", (err) => {
-      console.error("Error parsing CSV file:", err.message);
-      res.status(500).json({ message: "Error parsing CSV file" });
-    });
-
-    parser.on("end", async () => {
-      console.log("CSV file parsed successfully:", records);
-      const count = await registerManyUsers(records);
-      res.status(201).json({ message: `Registered ${count} students.` });
-    });
-
-    parser.write(req.file.buffer);
-    parser.end();
+    res
+      .status(201)
+      .json({ message: `Registered ${students.length} students.` });
   } catch (err: any) {
     res
       .status(500)

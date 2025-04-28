@@ -9,7 +9,7 @@ type DurationPerDate = {
 };
 
 export interface StudentDocument extends UserDocument {
-  age: number;
+  birthdate: Date;
   group: string;
   timeOnApp: DurationPerDate[];
 }
@@ -24,7 +24,7 @@ const StudentSchema = new Schema<StudentDocument>(
     provisoryPassword: { type: Boolean, default: true },
     refreshToken: { type: String, required: false },
     avatar: { type: String, default: null, required: false },
-    age: { type: Number, required: true },
+    birthdate: { type: Date, required: true },
     sex: { type: String, enum: Sex, required: true },
     group: { type: String, required: false },
     online: { type: Boolean, default: false },
@@ -41,7 +41,14 @@ const StudentSchema = new Schema<StudentDocument>(
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
-  { timestamps: true, versionKey: false, id: true }
+  {
+    timestamps: true,
+    versionKey: false,
+    id: true,
+    methods: {
+      register: async function () {},
+    },
+  }
 );
 
 StudentSchema.pre("save", async function (next) {

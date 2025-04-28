@@ -26,7 +26,7 @@ router.post(
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
         .required(),
       sex: Joi.string().valid("male", "female").required(),
-      age: Joi.number().required(),
+      birthdate: Joi.date().less(Date.now()).required(),
       group: Joi.string().required(),
       sendMail: Joi.boolean().default(false),
     }).validate(req.body);

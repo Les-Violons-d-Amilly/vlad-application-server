@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Date } from "mongoose";
+import { Schema, Document, Date, model } from "mongoose";
 
 export interface ExerciseDocument extends Document {
   name: string;
@@ -25,4 +25,4 @@ const ExerciseSchema: Schema = new Schema(
   { timestamps: true, versionKey: false, id: true }
 );
 
-export default mongoose.model<ExerciseDocument>("Exercise", ExerciseSchema);
+export default model<ExerciseDocument>("Exercise", ExerciseSchema);

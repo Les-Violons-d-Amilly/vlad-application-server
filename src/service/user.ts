@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
 import UserDocument, { Sex } from "../model/User";
 import capitalize from "../utils/capitalize";
+import { Moment } from "moment";
+import { ParsedStudent, ParsedTeacher } from "../utils/parseCsv";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -15,17 +17,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-type RegisterProps = Readonly<{
-  firstName: string;
-  lastName: string;
-  password: string;
-  email: string;
-  sex: Sex;
-  age: number;
-  group: string;
-  sendMail: boolean;
-}>;
-
 type LoginProps = Readonly<{
   identity: string;
   password: string;
@@ -33,7 +24,7 @@ type LoginProps = Readonly<{
 
 type Type = "student" | "teacher";
 
-export async function registerUser(payload: RegisterProps): Promise<void> {
+export async function registerUser(payload: ParsedStudent) {
   let identity =
     payload.firstName[0].toLowerCase() +
     payload.lastName
@@ -54,11 +45,11 @@ export async function registerUser(payload: RegisterProps): Promise<void> {
     hash: payload.password,
     email: payload.email,
     sex: payload.sex,
-    age: payload.age,
+    birthdate: payload.birthdate.toDate(),
     group: payload.group,
   });
 
-  if (!payload.sendMail) return;
+  if (!payload.sendMail) return user.id;
 
   const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
     expiresIn: "1h",
@@ -125,9 +116,11 @@ export async function registerUser(payload: RegisterProps): Promise<void> {
   } catch (error) {
     console.error("error while sending email:", error);
   }
+
+  return user.id;
 }
 
-export async function registerTeacher(user: RegisterProps): Promise<void> {
+export async function registerTeacher(user: ParsedTeacher) {
   let identity =
     user.firstName[0].toLowerCase() +
     user.lastName
@@ -141,7 +134,7 @@ export async function registerTeacher(user: RegisterProps): Promise<void> {
 
   if (existingIdentities) identity += existingIdentities + 1;
 
-  await Teacher.create({
+  const teacher = await Teacher.create({
     firstName: user.firstName.toLowerCase(),
     lastName: user.lastName.toLowerCase(),
     identity: identity,
@@ -149,22 +142,22 @@ export async function registerTeacher(user: RegisterProps): Promise<void> {
     email: user.email,
     sex: user.sex,
   });
+
+  return teacher.id;
 }
 
 export async function registerManyUsers(
-  users: RegisterProps[]
-): Promise<number> {
+  users: ParsedStudent[]
+): Promise<string[]> {
   const userPromises = users.map((user) => registerUser(user));
-  await Promise.all(userPromises);
-  return users.length;
+  return Promise.all(userPromises);
 }
 
 export async function registerManyTeachers(
-  users: RegisterProps[]
-): Promise<number> {
+  users: ParsedTeacher[]
+): Promise<string[]> {
   const userPromises = users.map((user) => registerTeacher(user));
-  await Promise.all(userPromises);
-  return users.length;
+  return Promise.all(userPromises);
 }
 
 export async function login(user: LoginProps): Promise<{
