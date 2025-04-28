@@ -63,7 +63,7 @@ export function parseStudentCsv(
       firstName: firstName.toLowerCase(),
       lastName: lastName.toLowerCase(),
       email: email,
-      group: group.replace(/\s{2,}/, " "),
+      group: group.toUpperCase().replace(/\s{2,}/, " "),
       birthdate: moment().subtract(parseInt(age), "years"),
       sex: (sex === "F" ? "female" : "male") as Sex,
       password: randomPassword(10),

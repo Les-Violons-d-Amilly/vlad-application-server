@@ -21,7 +21,6 @@ type SchoolData = {
   email: string;
   teachers: ParsedTeacher[];
   students: ParsedStudent[];
-  groups: string[];
   managedBy: string[];
   stripeCustomerId: string;
   stripeSubscriptionId: string;
@@ -39,7 +38,6 @@ router.post(
     const { error, value } = Joi.object({
       name: Joi.string().required(),
       email: Joi.string().email().required(),
-      groups: Joi.array().items(Joi.string()).optional().required(),
       managedBy: Joi.array().items(Joi.string().hex()).required(),
       paymentMethodId: Joi.string().required(),
     }).validate(req.body);
@@ -49,7 +47,7 @@ router.post(
       return;
     }
 
-    const { name, email, groups, managedBy } = value;
+    const { name, email, managedBy } = value;
     const files = req.files as
       | { [fieldname: string]: Express.Multer.File[] }
       | undefined;
@@ -120,7 +118,6 @@ router.post(
         email,
         teachers,
         students,
-        groups,
         managedBy,
         stripeCustomerId: customer.id,
         stripeSubscriptionId: subscription.id,
@@ -164,11 +161,12 @@ router.post(
           email,
           teachers,
           students,
-          groups,
           managedBy,
           stripeCustomerId,
           stripeSubscriptionId,
         } = schoolData;
+
+        const groups = [...new Set(students.map((s) => s.group))];
 
         const [registeredStudents, registeredTeachers] = await Promise.all([
           registerManyUsers(students),
