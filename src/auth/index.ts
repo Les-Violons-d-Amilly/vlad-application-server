@@ -3,6 +3,7 @@ import path from "path";
 import Student from "../model/Student";
 import capitalize from "../utils/capitalize";
 import { compileAsync } from "sass";
+import mongoose from "mongoose";
 import fs from "fs";
 
 const router = Router();
@@ -11,6 +12,15 @@ router.use(express.text());
 
 router.get("/redirect", async (req, res) => {
   const { user_id, refreshToken, accessToken } = req.query;
+  if (
+    !user_id ||
+    !refreshToken ||
+    !accessToken ||
+    !mongoose.isValidObjectId(user_id)
+  ) {
+    res.status(400).json({ message: "Missing parameters" });
+    return;
+  }
   const student = await Student.findById(user_id);
   const onMobile = req.headers["user-agent"]?.includes("Mobile") ?? false;
 

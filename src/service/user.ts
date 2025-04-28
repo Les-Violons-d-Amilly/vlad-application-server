@@ -173,11 +173,11 @@ export async function login(user: LoginProps): Promise<{
   accessToken: string;
   refreshToken: string;
 }> {
-  let foundUser = await Student.findOne({ identity: user.identity });
+  let foundUser = await Student.findOne({ identity: { $eq: user.identity } });
   let type: Type = "student";
 
   if (!foundUser) {
-    foundUser = await Teacher.findOne({ identity: user.identity });
+    foundUser = await Teacher.findOne({ identity: { $eq: user.identity } });
     type = "teacher";
   }
 
