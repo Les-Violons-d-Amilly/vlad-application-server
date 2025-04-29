@@ -10,9 +10,8 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
 });
-router.use(limiter); // apply rate limiter to all requests
+router.use(limiter);
 
-// validating the Student object to limit injections
 const createTeacherSchema = Joi.object({
   firstName: Joi.string().required(),
   lastName: Joi.string().required(),
@@ -20,7 +19,6 @@ const createTeacherSchema = Joi.object({
   students: Joi.array().items(Joi.string().hex().length(24)).optional(),
 });
 
-// validating the teacher object to limit injections
 const updateTeacherSchema = Joi.object({
   firstName: Joi.string().optional(),
   lastName: Joi.string().optional(),

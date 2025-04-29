@@ -2,6 +2,7 @@ import { model, Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import type UserDocument from "./User";
 import { Sex } from "./User";
+import Joi from "joi";
 
 type DurationPerDate = {
   date: string;

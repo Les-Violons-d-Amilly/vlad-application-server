@@ -45,7 +45,7 @@ export async function registerUser(payload: ParsedStudent) {
     hash: payload.password,
     email: payload.email,
     sex: payload.sex,
-    birthdate: payload.birthdate.toDate(),
+    birthdate: payload.birthdate,
     group: payload.group,
   });
 
