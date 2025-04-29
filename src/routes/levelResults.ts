@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
-import ExerciseDocument from "../model/Exercise";
-import * as exerciseService from "../service/exercise";
+import LevelResultDocument from "../model/LevelResult";
+import * as levelResultService from "../service/levelResult";
 import Joi from "joi";
 import rateLimit from "express-rate-limit";
 
@@ -13,8 +13,7 @@ const limiter = rateLimit({
 });
 router.use(limiter);
 
-// Schema for update validation
-const updateExerciseSchema = Joi.object({
+const updateLevelResultSchema = Joi.object({
   name: Joi.string().optional(),
   globalScore: Joi.number().optional(),
   noteReading: Joi.string().optional(),
@@ -23,31 +22,28 @@ const updateExerciseSchema = Joi.object({
   errorDetails: Joi.array().items(Joi.string()).optional(),
 });
 
-// Get all exercises
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const exercises = await exerciseService.getExercises();
-    res.json(exercises);
+    const levelResults = await levelResultService.getLevelResults();
+    res.json(levelResults);
   } catch (error) {
     res.status(500).send("Server error");
   }
 });
 
-// Get an exercise by ID
 router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
     const id = req.params.id;
-    const exercise = await exerciseService.getExerciseById(id);
-    if (!exercise) {
-      return res.status(404).send("Exercise not found");
+    const levelResult = await levelResultService.getLevelResultById(id);
+    if (!levelResult) {
+      return res.status(404).send("LevelResult not found");
     }
-    res.json(exercise);
+    res.json(levelResult);
   } catch (error) {
     res.status(500).send("Server error");
   }
 });
 
-// Create a new exercise
 router.post("/", async (req: Request, res: Response) => {
   const {
     name,
@@ -58,7 +54,7 @@ router.post("/", async (req: Request, res: Response) => {
     errorDetails,
   } = req.body;
 
-  const exercise = new ExerciseDocument({
+  const levelResult = new LevelResultDocument({
     name,
     globalScore,
     noteReading,
@@ -69,45 +65,45 @@ router.post("/", async (req: Request, res: Response) => {
   });
 
   try {
-    const savedExercise = await exerciseService.saveExercise(exercise);
-    res.status(201).json(savedExercise);
+    const savedLevelResult = await levelResultService.saveLevelResult(
+      levelResult
+    );
+    res.status(201).json(savedLevelResult);
   } catch (error) {
-    res.status(400).json({ message: "Error creating an Exercise" });
+    res.status(400).json({ message: "Error creating an LevelResult" });
   }
 });
 
-// Update an existing exercise
 router.patch("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
-    const { error, value } = updateExerciseSchema.validate(req.body);
+    const { error, value } = updateLevelResultSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const updatedExercise = await exerciseService.updateExercise(
+    const updatedLevelResult = await levelResultService.updateLevelResult(
       req.params.id,
       value
     );
 
-    if (!updatedExercise) {
-      return res.status(404).json({ message: "Exercise not found" });
+    if (!updatedLevelResult) {
+      return res.status(404).json({ message: "LevelResult not found" });
     }
 
-    res.json(updatedExercise);
+    res.json(updatedLevelResult);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Delete an exercise
 router.delete("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
-    const deleted = await exerciseService.deleteExercise(req.params.id);
+    const deleted = await levelResultService.deleteLevelResult(req.params.id);
     if (!deleted) {
-      return res.status(404).json({ message: "Exercise not found" });
+      return res.status(404).json({ message: "LevelResult not found" });
     }
 
-    res.json({ message: "Deleted Exercise" });
+    res.json({ message: "Deleted LevelResult" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

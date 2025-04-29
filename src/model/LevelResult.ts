@@ -1,6 +1,6 @@
 import { Schema, Document, Date, model } from "mongoose";
 
-export interface ExerciseDocument extends Document {
+export interface LevelResultDocument extends Document {
   name: string;
   globalScore?: number;
   noteReading?: string;
@@ -11,7 +11,7 @@ export interface ExerciseDocument extends Document {
   duration: number;
 }
 
-const ExerciseSchema: Schema = new Schema(
+const LevelResultSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
     globalScore: { type: Number, required: false },
@@ -25,4 +25,4 @@ const ExerciseSchema: Schema = new Schema(
   { timestamps: true, versionKey: false, id: true }
 );
 
-export default model<ExerciseDocument>("Exercise", ExerciseSchema);
+export default model<LevelResultDocument>("LevelResult", LevelResultSchema);
