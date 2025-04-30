@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
 import UserDocument, { Sex } from "../model/User";
 import capitalize from "../utils/capitalize";
-import { Moment } from "moment";
 import { ParsedStudent, ParsedTeacher } from "../utils/parseCsv";
 
 const transporter = nodemailer.createTransport({

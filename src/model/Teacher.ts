@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
 import type UserDocument from "./User";
 import { Sex } from "./User";
-
+import Joi from "joi";
 const TeacherSchema = new Schema<UserDocument>(
   {
     identity: { type: String, required: true, unique: true },
@@ -21,6 +21,20 @@ const TeacherSchema = new Schema<UserDocument>(
   },
   { timestamps: true, versionKey: false, id: true }
 );
+
+export const createTeacherSchema = Joi.object({
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  email: Joi.string().email().required(),
+  students: Joi.array().items(Joi.string().hex().length(24)).optional(),
+});
+
+export const updateTeacherSchema = Joi.object({
+  firstName: Joi.string().optional(),
+  lastName: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+  students: Joi.array().items(Joi.string().hex().length(24)).optional(),
+});
 
 TeacherSchema.pre("save", async function (next) {
   if (!this.isModified("hash")) return next();
