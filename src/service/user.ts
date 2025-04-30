@@ -104,7 +104,7 @@ export async function registerUser(payload: ParsedStudent) {
   const mailTextBody = mailHTMLBody.replace(/<[^>]+>/g, "");
 
   const mailOptions = {
-    from: `VLADnoreply <${process.env.EMAIL_USER}>`,
+    from: `VLAD No-Reply <${process.env.EMAIL_USER}>`,
     to: payload.email,
     subject: "Identifiant VLAD",
     text: mailTextBody,

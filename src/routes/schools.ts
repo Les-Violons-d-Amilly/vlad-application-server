@@ -11,6 +11,8 @@ import {
 } from "../utils/parseCsv";
 import School from "../model/School";
 import { registerManyTeachers, registerManyUsers } from "../service/user";
+import nodemailer from "nodemailer";
+import randomPassword from "../utils/randomPassword";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const router = Router();
@@ -130,6 +132,15 @@ const TOLERATED_ACTIVITY = {
 
 const schoolsMap = new Map<string, SchoolData>();
 const siretResponseCache = new Map<string, Response>();
+const emailCodes = new Map<string, string>();
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PSWD,
+  },
+});
 
 router.post(
   "/",
@@ -240,6 +251,69 @@ router.post(
     }
   }
 );
+
+router.get("/validate/email/:email", async (req, res) => {
+  if (!req.params.email) {
+    res.status(400).json({ error: "Email is required" });
+    return;
+  }
+
+  const code = randomPassword(6, {
+    lowercase: false,
+    uppercase: false,
+    numbers: true,
+    symbols: false,
+  });
+
+  emailCodes.set(req.params.email, code);
+
+  setTimeout(() => {
+    emailCodes.delete(req.params.email);
+  }, 600_000);
+
+  const mailHTML = `
+    <p>Bonjour,</p>
+    <p>Voici le code de validation pour votre adresse email : <strong>${code}</strong></p>
+    <p>Le code est valide pendant 10 minutes.</p>
+    <p>Merci de ne pas partager ce code avec qui que ce soit.</p>
+    <p>Cordialement,</p>
+    <p>L'équipe de Vlad</p>`;
+
+  const mailText = mailHTML.replace(/<[^>]+>/g, "");
+
+  await transporter.sendMail({
+    to: req.params.email,
+    from: `VLAD No-Reply <${process.env.EMAIL_USER}>`,
+    subject: "Code de validation de l'adresse email",
+    text: mailText,
+    html: mailHTML,
+  });
+
+  res.status(200).json({ message: "Email sent successfully" });
+});
+
+router.get("/validate/email/:email/:code", async (req, res) => {
+  if (!req.params.email || !req.params.code) {
+    res.status(400).json({ error: "Email and code are required" });
+    return;
+  }
+
+  const { email, code } = req.params;
+  const storedCode = emailCodes.get(email);
+
+  if (!storedCode) {
+    res.status(400).json({ error: "Invalid or expired code" });
+    return;
+  }
+
+  if (storedCode !== code) {
+    res.status(400).json({ error: "Invalid code" });
+    return;
+  }
+
+  emailCodes.delete(email);
+  res.status(200).json({ message: "Email validated successfully" });
+});
 
 router.get("/validate/siret/:siret", async (req, res) => {
   if (!req.params.siret) {
@@ -381,5 +455,43 @@ router.post(
     }
   }
 );
+
+router.post("/preview/students", upload.single("file"), async (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ message: "No file uploaded" });
+    return;
+  }
+
+  if (!/csv/i.test(req.file.mimetype)) {
+    res.status(400).json({ message: "Invalid file type" });
+    return;
+  }
+
+  const students = await parseStudentCsv(req.file.buffer);
+
+  res.status(200).json({
+    message: `Parsed ${students.length} students`,
+    students,
+  });
+});
+
+router.post("/preview/teachers", upload.single("file"), async (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ message: "No file uploaded" });
+    return;
+  }
+
+  if (!/csv/i.test(req.file.mimetype)) {
+    res.status(400).json({ message: "Invalid file type" });
+    return;
+  }
+
+  const teachers = await parseTeacherCsv(req.file.buffer);
+
+  res.status(200).json({
+    message: `Parsed ${teachers.length} teachers`,
+    teachers,
+  });
+});
 
 export default router;

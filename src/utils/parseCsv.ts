@@ -19,10 +19,10 @@ export type ParsedStudent = ParsedUser & {
 
 export type ParsedTeacher = ParsedUser & {};
 
-function parseCsv<T>(
+function parseCsv<T, U extends string[]>(
   buffer: Buffer<ArrayBufferLike>,
-  columns: string[],
-  formatFn?: (record: string[]) => T
+  columns: U,
+  formatFn: (record: Record<U[number], string>) => T = (record) => record as T
 ): Promise<T[]> {
   return new Promise((resolve, reject) => {
     const records: T[] = [];
@@ -35,14 +35,10 @@ function parseCsv<T>(
       skip_empty_lines: true,
     })
       .on("readable", () => {
-        let record: (typeof columns)[number][];
+        let record: Record<U[number], string> | null;
 
         while ((record = parser.read())) {
-          if (formatFn) {
-            records.push(formatFn(record));
-          } else {
-            records.push(record as T);
-          }
+          records.push(formatFn(record));
         }
       })
       .on("error", reject)
@@ -59,7 +55,7 @@ export function parseStudentCsv(
   return parseCsv(
     buffer,
     ["age", "group", "email", "lastName", "firstName", "sex"],
-    ([age, group, email, lastName, firstName, sex]) => ({
+    ({ age, group, email, lastName, firstName, sex }) => ({
       firstName: firstName.toLowerCase(),
       lastName: lastName.toLowerCase(),
       email: email,
@@ -78,7 +74,7 @@ export function parseTeacherCsv(
   return parseCsv(
     buffer,
     ["email", "lastName", "firstName", "sex"],
-    ([email, lastName, firstName, sex]) => ({
+    ({ email, lastName, firstName, sex }) => ({
       firstName: firstName.toLowerCase(),
       lastName: lastName.toLowerCase(),
       email: email,
