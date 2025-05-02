@@ -1,8 +1,9 @@
 import { Response, Request, Router } from "express";
-import TeacherDocument, {
+import TeacherDocument from "../model/Teacher";
+import {
   updateTeacherSchema,
   createTeacherSchema,
-} from "../model/Teacher";
+} from "../validation/teacherSchemas";
 import * as teacherService from "../service/teacher";
 import { validateBody } from "../utils/joiValidation";
 const router = Router();
