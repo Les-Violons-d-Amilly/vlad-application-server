@@ -8,35 +8,21 @@ import {
 } from "../service/user";
 import omit from "../utils/omit";
 import jwt from "jsonwebtoken";
-import Joi from "joi";
 import { DecodedToken, useAuthentication } from "../utils/authentication";
+import { validateBody } from "../utils/joiValidation";
+import {
+  studentRegisterSchema,
+  teacherRegisterSchema,
+} from "../validation/authSchemas";
 
 const router = Router();
 
 router.post(
   "/register/student",
+  validateBody(studentRegisterSchema),
   async (req: Request, res: Response): Promise<any> => {
-    const { error, value } = Joi.object({
-      firstName: Joi.string().required(),
-      lastName: Joi.string().required(),
-      email: Joi.string().email().required(),
-      password: Joi.string()
-        .min(8)
-        .max(64)
-        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
-        .required(),
-      sex: Joi.string().valid("male", "female").required(),
-      birthdate: Joi.date().less(Date.now()).required(),
-      group: Joi.string().required(),
-      sendMail: Joi.boolean().default(false),
-    }).validate(req.body);
-
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
     try {
-      await registerUser(value);
+      await registerUser(req.body);
       res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
       res.status(500).json({ message: "" + error });
@@ -46,25 +32,10 @@ router.post(
 
 router.post(
   "/register/teacher",
+  validateBody(teacherRegisterSchema),
   async (req: Request, res: Response): Promise<any> => {
-    const { error, value } = Joi.object({
-      firstName: Joi.string().required(),
-      lastName: Joi.string().required(),
-      email: Joi.string().email().required(),
-      password: Joi.string()
-        .min(8)
-        .max(64)
-        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
-        .required(),
-      sex: Joi.string().valid("male", "female").required(),
-    }).validate(req.body);
-
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
     try {
-      await registerTeacher(value);
+      await registerTeacher(req.body);
       res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
       res.status(500).json({ message: "" + error });
