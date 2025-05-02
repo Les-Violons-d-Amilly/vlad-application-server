@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 type RandomPasswordOptions = {
   lowercase: boolean;
   uppercase: boolean;
@@ -32,19 +34,19 @@ export default function randomPassword(
   let password = "";
 
   if (options.lowercase)
-    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += lowercase[Math.floor(crypto.randomInt(0, lowercase.length))];
 
   if (options.uppercase)
-    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += uppercase[Math.floor(crypto.randomInt(0, uppercase.length))];
 
   if (options.numbers)
-    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += numbers[Math.floor(crypto.randomInt(0, numbers.length))];
 
   if (options.symbols)
-    password += symbols[Math.floor(Math.random() * symbols.length)];
+    password += symbols[Math.floor(crypto.randomInt(0, symbols.length))];
 
   for (let i = password.length; i < length; i++) {
-    password += charset[Math.floor(Math.random() * charset.length)];
+    password += charset[Math.floor(crypto.randomInt(0, charset.length))];
   }
 
   password = password
