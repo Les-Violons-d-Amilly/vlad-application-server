@@ -1,20 +1,12 @@
 import "dotenv/config";
 import Student, { StudentDocument } from "../model/Student";
-import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Teacher from "../model/Teacher";
-import UserDocument, { Sex } from "../model/User";
+import UserDocument from "../model/User";
 import capitalize from "../utils/capitalize";
 import { ParsedStudent, ParsedTeacher } from "../utils/parseCsv";
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PSWD,
-  },
-});
+import sendEmail from "../utils/sendEmail";
 
 type LoginProps = Readonly<{
   identity: string;
@@ -61,57 +53,49 @@ export async function registerUser(payload: ParsedStudent) {
   user.refreshToken = refreshToken;
   await user.save();
 
-  const mailHTMLBody = /* html */ `
-  <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f9f9f9;">
-  <h2 style="color: #2c3e50;">Bienvenue, <b>${capitalize(
-    payload.firstName
-  )}</b> !</h2>
-  <p style="font-size: 16px; color: #555;">
-    Nous sommes ravis de vous accueillir sur <b>l'application VLAD</b> !
-  </p>
-  <h3 style="color: #2c3e50; margin-top: 30px;">🔑 Vos identifiants de connexion :</h3>
-  <div style="background-color: #ffffff; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px;">
-    <p style="font-size: 16px; color: #555; margin: 5px 0;">
-      <b>Identifiant :</b> ${identity}
-    </p>
-    <p style="font-size: 16px; color: #555; margin: 5px 0;">
-      <b>Mot de passe :</b> ${payload.password}
-    </p>
-  </div>
-  <p style="font-size: 16px; color: #555;">
-    <b>Note :</b> Ne partagez jamais vos identifiants avec qui que ce soit. Si vous avez des doutes sur la sécurité de votre compte, n'hésitez pas à changer votre mot de passe.
-  </p>
-  <p style="font-size: 16px; color: #555;">
-    Vous pouvez dès maintenant vous connecter à votre compte en cliquant sur le bouton ci-dessous :
-  </p>
-  <div style="text-align: center; margin: 20px 0;">
-    <a href="http://192.168.1.108:8080/auth/redirect?user_id=${
-      user.id
-    }&refreshToken=${refreshToken}&accessToken=${accessToken}"
-        style="font-size: 18px; color: white; background-color: #4CAF50; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block;">
-      🚀 Se connecter
-    </a>
-  </div>
-  <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;">
-  <p style="font-size: 14px; color: #999; text-align: center;">
-    Si vous avez des questions ou besoin d'aide, n'hésitez pas à nous contacter.<br>
-    Merci de votre confiance et à très bientôt sur <b>VLAD</b> !
-  </p>
-</div>
-    `;
-
-  const mailTextBody = mailHTMLBody.replace(/<[^>]+>/g, "");
-
-  const mailOptions = {
-    from: `VLAD No-Reply <${process.env.EMAIL_USER}>`,
-    to: payload.email,
-    subject: "Identifiant VLAD",
-    text: mailTextBody,
-    html: mailHTMLBody,
-  };
-
   try {
-    await transporter.sendMail(mailOptions);
+    await sendEmail(
+      payload.email,
+      "Identifiant VLAD",
+      /* html */ `
+      <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f9f9f9;">
+        <h2 style="color: #2c3e50;">Bienvenue, <b>${capitalize(
+          payload.firstName
+        )}</b> !</h2>
+        <p style="font-size: 16px; color: #555;">
+          Nous sommes ravis de vous accueillir sur <b>l'application VLAD</b> !
+        </p>
+        <h3 style="color: #2c3e50; margin-top: 30px;">🔑 Vos identifiants de connexion :</h3>
+        <div style="background-color: #ffffff; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px;">
+          <p style="font-size: 16px; color: #555; margin: 5px 0;">
+            <b>Identifiant :</b> ${identity}
+          </p>
+          <p style="font-size: 16px; color: #555; margin: 5px 0;">
+            <b>Mot de passe :</b> ${payload.password}
+          </p>
+        </div>
+        <p style="font-size: 16px; color: #555;">
+          <b>Note :</b> Ne partagez jamais vos identifiants avec qui que ce soit. Si vous avez des doutes sur la sécurité de votre compte, n'hésitez pas à changer votre mot de passe.
+        </p>
+        <p style="font-size: 16px; color: #555;">
+          Vous pouvez dès maintenant vous connecter à votre compte en cliquant sur le bouton ci-dessous :
+        </p>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="http://192.168.1.108:8080/auth/redirect?user_id=${
+            user.id
+          }&refreshToken=${refreshToken}&accessToken=${accessToken}"
+              style="font-size: 18px; color: white; background-color: #4CAF50; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            🚀 Se connecter
+          </a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;">
+        <p style="font-size: 14px; color: #999; text-align: center;">
+          Si vous avez des questions ou besoin d'aide, n'hésitez pas à nous contacter.<br>
+          Merci de votre confiance et à très bientôt sur <b>VLAD</b> !
+        </p>
+      </div>
+      `
+    );
   } catch (error) {
     console.error("error while sending email:", error);
   }
@@ -119,10 +103,10 @@ export async function registerUser(payload: ParsedStudent) {
   return user.id;
 }
 
-export async function registerTeacher(user: ParsedTeacher) {
+export async function registerTeacher(payload: ParsedTeacher) {
   let identity =
-    user.firstName[0].toLowerCase() +
-    user.lastName
+    payload.firstName[0].toLowerCase() +
+    payload.lastName
       .toLowerCase()
       .replace(/[^a-z]/g, "")
       .slice(0, 7);
@@ -134,13 +118,46 @@ export async function registerTeacher(user: ParsedTeacher) {
   if (existingIdentities) identity += existingIdentities + 1;
 
   const teacher = await Teacher.create({
-    firstName: user.firstName.toLowerCase(),
-    lastName: user.lastName.toLowerCase(),
+    firstName: payload.firstName.toLowerCase(),
+    lastName: payload.lastName.toLowerCase(),
     identity: identity,
-    hash: user.password,
-    email: user.email,
-    sex: user.sex,
+    hash: payload.password,
+    email: payload.email,
+    sex: payload.sex,
   });
+
+  if (!payload.sendMail) return teacher.id;
+
+  try {
+    await sendEmail(
+      payload.email,
+      "Identifiant VLAD",
+      /* html */ `
+      <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f9f9f9;">
+        <h2 style="color: #2c3e50;">Bienvenue, <b>${capitalize(
+          payload.firstName
+        )}</b> !</h2>
+        <p style="font-size: 16px; color: #555;">
+          Nous sommes ravis de vous accueillir sur <b>l'application VLAD</b> !
+        </p>
+        <h3 style="color: #2c3e50; margin-top: 30px;">🔑 Vos identifiants de connexion :</h3>
+        <div style="background-color: #ffffff; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px;">
+          <p style="font-size: 16px; color: #555; margin: 5px 0;">
+            <b>Identifiant :</b> ${identity}
+          </p>
+          <p style="font-size: 16px; color: #555; margin: 5px 0;">
+            <b>Mot de passe :</b> ${payload.password}
+          </p>
+        </div>
+        <p style="font-size: 16px; color: #555;">
+          <b>Note :</b> Ne partagez jamais vos identifiants avec qui que ce soit. Si vous avez des doutes sur la sécurité de votre compte, n'hésitez pas à changer votre mot de passe.
+        </p>
+      </div>
+      `
+    );
+  } catch (error) {
+    console.error("error while sending email:", error);
+  }
 
   return teacher.id;
 }

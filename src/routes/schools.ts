@@ -9,21 +9,23 @@ import {
   parseStudentCsv,
   parseTeacherCsv,
 } from "../utils/parseCsv";
-import School from "../model/School";
+import School, { SchoolDocument } from "../model/School";
 import { registerManyTeachers, registerManyUsers } from "../service/user";
-import nodemailer from "nodemailer";
 import randomPassword from "../utils/randomPassword";
+import EventEmitter from "events";
+import sendEmail from "../utils/sendEmail";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const router = Router();
 const upload = multer();
 
 type SchoolData = {
+  siret: string;
   name: string;
   email: string;
   teachers: ParsedTeacher[];
   students: ParsedStudent[];
-  managedBy: string[];
+  managedBy: number[];
   stripeCustomerId: string;
   stripeSubscriptionId: string;
 };
@@ -125,6 +127,18 @@ type SiretResponse = {
   etablissement: SiretResponseEtablissement;
 };
 
+type ListenerResult =
+  | {
+      error: false;
+      message: string;
+      data: { schoolId: string };
+    }
+  | {
+      error: true;
+      message: string;
+      data: null;
+    };
+
 const TOLERATED_ACTIVITY = {
   "85.52Z": "Enseignement culturel",
   "90.01Z": "Arts du spectacle vivant",
@@ -133,14 +147,7 @@ const TOLERATED_ACTIVITY = {
 const schoolsMap = new Map<string, SchoolData>();
 const siretResponseCache = new Map<string, Response>();
 const emailCodes = new Map<string, string>();
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PSWD,
-  },
-});
+const schoolEvents = new EventEmitter();
 
 router.post(
   "/",
@@ -150,18 +157,19 @@ router.post(
   ]),
   async (req, res) => {
     const { error, value } = Joi.object({
-      name: Joi.string().required(),
+      siret: Joi.string().required().length(14),
+      name: Joi.string().min(3).max(100).required(),
       email: Joi.string().email().required(),
-      managedBy: Joi.array().items(Joi.string().hex()).required(),
+      managedBy: Joi.array().items(Joi.number()).required(),
       paymentMethodId: Joi.string().required(),
-    }).validate(req.body);
+    }).validate(JSON.parse(req.body.data));
 
     if (error) {
       res.status(400).json({ error: error.details[0].message });
       return;
     }
 
-    const { name, email, managedBy } = value;
+    const { name, email, managedBy, siret } = value;
     const files = req.files as
       | { [fieldname: string]: Express.Multer.File[] }
       | undefined;
@@ -193,7 +201,6 @@ router.post(
 
       const product = await stripe.products.create({
         name: `Subscription for ${name} (${students.length} students, ${teachers.length} teachers)`,
-        metadata: { schoolId },
       });
 
       const price = await stripe.prices.create({
@@ -210,24 +217,11 @@ router.post(
           payment_method_types: ["card"],
           save_default_payment_method: "on_subscription",
         },
-        expand: ["latest_invoice.payment_intent"],
         metadata: { schoolId },
       });
 
-      const invoice = subscription.latest_invoice as
-        | (Stripe.Invoice & {
-            payment_intent: Stripe.PaymentIntent;
-          })
-        | null;
-
-      if (!invoice) {
-        res.status(500).json({ error: "Failed to create subscription" });
-        return;
-      }
-
-      const clientSecret = invoice.payment_intent.client_secret;
-
       schoolsMap.set(schoolId, {
+        siret,
         name,
         email,
         teachers,
@@ -237,17 +231,235 @@ router.post(
         stripeSubscriptionId: subscription.id,
       });
 
-      res.status(201).json({
-        message: "School created successfully",
-        payment: {
+      const listener = async (result: ListenerResult) => {
+        if (result.error) {
+          console.log(`Payment failed for school ${name}.`);
+
+          schoolsMap.delete(schoolId);
+          res.status(400).json({
+            error: "Payment failed",
+            message: result.message,
+          });
+
+          return;
+        }
+
+        res.status(201).json({
+          message: "School created successfully",
           subscriptionId: subscription.id,
-          clientSecret,
-        },
-        schoolId,
-      });
+          schoolId: result.data.schoolId,
+        });
+      };
+
+      schoolEvents.once(`payment_result:${subscription.id}`, listener);
+
+      setTimeout(() => {
+        schoolEvents.removeListener(
+          `payment_result:${subscription.id}`,
+          listener
+        );
+
+        schoolsMap.delete(schoolId);
+
+        res.status(400).json({
+          error: "Payment failed or timed out",
+        });
+      }, 600_000);
     } catch (error) {
       console.error("Error creating subscription:", error);
       res.status(500).json({ error: "Failed to create subscription" });
+    }
+  }
+);
+
+router.post(
+  "/payment/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    let event: Stripe.Event = req.body;
+
+    switch (event.type) {
+      case "invoice.payment_succeeded": {
+        const subscriptionId = event.data.object.parent?.subscription_details
+          ?.subscription as string | null;
+
+        if (!subscriptionId) {
+          console.log("No subscription ID found in the event data");
+          res.sendStatus(400);
+
+          schoolEvents.emit(`payment_result:${subscriptionId}`, {
+            error: true,
+            message: "No subscription ID found",
+            data: null,
+          });
+
+          return;
+        }
+
+        const subscription = await stripe.subscriptions.retrieve(
+          subscriptionId
+        );
+
+        const schoolId = subscription.metadata.schoolId;
+        const schoolData = schoolsMap.get(schoolId);
+
+        if (!schoolData) {
+          console.log(`School with ID ${schoolId} not found`);
+          res.sendStatus(404);
+
+          schoolEvents.emit(`payment_result:${subscriptionId}`, {
+            error: true,
+            message: "School not found",
+            data: null,
+          });
+
+          return;
+        }
+
+        const {
+          siret,
+          name,
+          email,
+          teachers,
+          students,
+          managedBy,
+          stripeCustomerId,
+          stripeSubscriptionId,
+        } = schoolData;
+
+        const groups = [
+          ...new Set(
+            students.map((s) => s.group.trim().replace(/\s{2,}/g, " "))
+          ),
+        ];
+
+        const [registeredStudents, registeredTeachers] = await Promise.all([
+          registerManyUsers(students),
+          registerManyTeachers(teachers),
+        ]);
+
+        const managedByIds = managedBy.map(
+          (teacherIndex) => registeredTeachers[teacherIndex]
+        );
+
+        let school: SchoolDocument;
+
+        try {
+          school = await School.create({
+            siret,
+            name,
+            email,
+            teachers: registeredTeachers,
+            students: registeredStudents,
+            managedBy: managedByIds,
+            groups,
+            stripeCustomerId,
+            stripeSubscriptionId,
+          });
+        } catch (error) {
+          console.error("Error creating school:", error);
+          schoolsMap.delete(schoolId);
+          res.status(500).json({ error: "Failed to create school" });
+
+          schoolEvents.emit(`payment_result:${subscriptionId}`, {
+            error: true,
+            message: "Failed to create school",
+            data: null,
+          });
+
+          return;
+        }
+
+        schoolsMap.delete(schoolId);
+        console.log(`Payment succeeded for school ${name}. School data saved.`);
+        res.sendStatus(200);
+
+        schoolEvents.emit(`payment_result:${subscriptionId}`, {
+          error: false,
+          message: "Payment succeeded",
+          data: { schoolId: school.id },
+        });
+
+        sendEmail(
+          email,
+          "Inscription réussie",
+          /* html */ `
+          <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Bonjour,</p>
+          <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+            Votre inscription a été validée avec succès.
+          </p>
+          <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+            Voici les informations de votre école :
+          </p>
+          <ul style="font-family: Arial, sans-serif; font-size: 16px; color: #333; padding-left: 20px;">
+            <li><strong style="color: #000;">Nom :</strong> ${name}</li>
+            <li><strong style="color: #000;">Email :</strong> ${email}</li>
+            <li><strong style="color: #000;">Nombre d'élèves :</strong> ${students.length}</li>
+            <li><strong style="color: #000;">Nombre de professeurs :</strong> ${teachers.length}</li>
+          </ul>
+          <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Cordialement,</p>
+          <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">L'équipe de Vlad</p>`
+        );
+
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const subscriptionId = event.data.object.parent?.subscription_details
+          ?.subscription as string | null;
+
+        if (!subscriptionId) {
+          console.log("No subscription ID found in the event data");
+          res.sendStatus(400);
+
+          schoolEvents.emit(`payment_result:${subscriptionId}`, {
+            error: true,
+            message: "No subscription ID found",
+            data: null,
+          });
+
+          return;
+        }
+
+        const subscription = await stripe.subscriptions.retrieve(
+          subscriptionId
+        );
+
+        const schoolId = subscription.metadata.schoolId;
+        const failedSchoolData = schoolsMap.get(schoolId);
+
+        if (!failedSchoolData) {
+          console.log(`School with ID ${schoolId} not found`);
+          res.sendStatus(404);
+
+          schoolEvents.emit(`payment_result:${subscriptionId}`, {
+            error: true,
+            message: "School not found",
+            data: null,
+          });
+
+          return;
+        }
+
+        schoolsMap.delete(schoolId);
+        console.log(
+          `Payment failed for school ${failedSchoolData.name}. School data deleted.`
+        );
+
+        res.sendStatus(200);
+
+        schoolEvents.emit(`payment_result:${subscriptionId}`, {
+          error: true,
+          message: "Payment failed",
+          data: null,
+        });
+
+        break;
+      }
+
+      default:
+        res.sendStatus(400);
+        break;
     }
   }
 );
@@ -271,23 +483,24 @@ router.get("/validate/email/:email", async (req, res) => {
     emailCodes.delete(req.params.email);
   }, 600_000);
 
-  const mailHTML = `
-    <p>Bonjour,</p>
-    <p>Voici le code de validation pour votre adresse email : <strong>${code}</strong></p>
-    <p>Le code est valide pendant 10 minutes.</p>
-    <p>Merci de ne pas partager ce code avec qui que ce soit.</p>
-    <p>Cordialement,</p>
-    <p>L'équipe de Vlad</p>`;
-
-  const mailText = mailHTML.replace(/<[^>]+>/g, "");
-
-  await transporter.sendMail({
-    to: req.params.email,
-    from: `VLAD No-Reply <${process.env.EMAIL_USER}>`,
-    subject: "Code de validation de l'adresse email",
-    text: mailText,
-    html: mailHTML,
-  });
+  await sendEmail(
+    req.params.email,
+    "Code de validation de l'adresse email",
+    /* html */ `
+    <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Bonjour,</p>
+    <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+      Voici le code de validation pour votre adresse email :
+      <strong style="color: #2a9d8f; font-weight: bold;">${code}</strong>
+    </p>
+    <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+      Le code est valide pendant 10 minutes.
+    </p>
+    <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+      Merci de ne pas partager ce code avec qui que ce soit.
+    </p>
+    <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Cordialement,</p>
+    <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">L'équipe de Vlad</p>`
+  );
 
   res.status(200).json({ message: "Email sent successfully" });
 });
@@ -371,90 +584,6 @@ router.get("/validate/siret/:siret", async (req, res) => {
     },
   });
 });
-
-router.post(
-  "/payment/webhook",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    const event = req.body as Stripe.Event;
-
-    switch (event.type) {
-      case "payment_intent.succeeded":
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        const schoolId = paymentIntent.metadata.schoolId;
-        const schoolData = schoolsMap.get(schoolId);
-
-        if (!schoolData) {
-          console.log(`School with ID ${schoolId} not found`);
-          res.sendStatus(404);
-          return;
-        }
-
-        const {
-          name,
-          email,
-          teachers,
-          students,
-          managedBy,
-          stripeCustomerId,
-          stripeSubscriptionId,
-        } = schoolData;
-
-        const groups = [...new Set(students.map((s) => s.group))];
-
-        const [registeredStudents, registeredTeachers] = await Promise.all([
-          registerManyUsers(students),
-          registerManyTeachers(teachers),
-        ]);
-
-        try {
-          await School.create({
-            name,
-            email,
-            teachers: registeredTeachers,
-            students: registeredStudents,
-            groups,
-            managedBy,
-            stripeCustomerId,
-            stripeSubscriptionId,
-          });
-        } catch (error) {
-          console.error("Error creating school:", error);
-          schoolsMap.delete(schoolId);
-          res.status(500).json({ error: "Failed to create school" });
-          return;
-        }
-
-        schoolsMap.delete(schoolId);
-        console.log(`Payment succeeded for school ${name}. School data saved.`);
-        res.sendStatus(200);
-        break;
-
-      case "payment_intent.payment_failed":
-        const failedPaymentIntent = event.data.object as Stripe.PaymentIntent;
-        const failedSchoolId = failedPaymentIntent.metadata.schoolId;
-        const failedSchoolData = schoolsMap.get(failedSchoolId);
-
-        if (!failedSchoolData) {
-          console.log(`School with ID ${failedSchoolId} not found`);
-          res.sendStatus(404);
-          return;
-        }
-
-        schoolsMap.delete(failedSchoolId);
-        console.log(
-          `Payment failed for school ${failedSchoolData.name}. School data deleted.`
-        );
-
-        res.sendStatus(200);
-        break;
-
-      default:
-        console.log(`Unhandled event type ${event.type}`);
-        break;
-    }
-  }
-);
 
 router.post("/preview/students", upload.single("file"), async (req, res) => {
   if (!req.file) {

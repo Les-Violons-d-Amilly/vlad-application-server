@@ -3,10 +3,10 @@ import { Schema, Document, Date, model } from "mongoose";
 export interface SchoolDocument extends Document {
   name: string;
   email: string;
-  students: string[];
-  teachers: string[];
+  students: { $id: string }[];
+  teachers: { $id: string }[];
+  managedBy: { $id: string }[];
   groups: string[];
-  managedBy: string[];
   stripeCustomerId: string;
   stripeSubscriptionId: string;
   createdAt: Date;
@@ -15,12 +15,13 @@ export interface SchoolDocument extends Document {
 
 const SchoolSchema: Schema = new Schema(
   {
+    siret: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     email: { type: String, required: true },
     students: [{ type: Schema.Types.ObjectId, ref: "Student" }],
     teachers: [{ type: Schema.Types.ObjectId, ref: "Teacher" }],
-    groups: [{ type: String }],
     managedBy: [{ type: Schema.Types.ObjectId, ref: "Teacher" }],
+    groups: [{ type: String }],
     stripeCustomerId: { type: String, required: true },
     stripeSubscriptionId: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
