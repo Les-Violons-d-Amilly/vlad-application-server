@@ -10,6 +10,8 @@ const router = Router();
 
 import rateLimit from "express-rate-limit";
 import { getTeacherById } from "../service/user";
+import sendEmail from "../utils/sendEmail";
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -85,8 +87,8 @@ router.patch(
       }
 
       res.json(updatedTeacher);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
+    } catch (error) {
+      res.status(500).json({ message: "" + error });
     }
   }
 );
@@ -98,8 +100,40 @@ router.delete("/:id", async (req: Request, res: Response): Promise<any> => {
       return res.status(404).json({ message: "Teacher not found" });
     }
     res.json({ message: "Deleted teacher" });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "" + error });
+  }
+});
+
+router.get("/reset-password/:id", async (req: Request, res: Response) => {
+  try {
+    if (!req.user.id) {
+      res.status(401).json({ message: "Empty request" });
+      return;
+    }
+
+    const teacher = await getTeacherById(req.params.id);
+
+    if (!teacher) {
+      res.status(404).json({ message: "Teacher not found" });
+      return;
+    }
+
+    await sendEmail(
+      teacher.email,
+      "Réinitialisation de mot de passe",
+      /* html */ `
+      <h1 style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Bonjour ${teacher.firstName} ${teacher.lastName}</h1>
+      <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Vous avez demandé la réinitialisation de votre mot de passe.</p>
+      <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Veuillez cliquer sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>
+      <a href="${process.env.FRONTEND_URL}/resetpassword/${teacher._id}">Réinitialiser le mot de passe</a>
+      <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet e-mail.</p>
+      <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">Cordialement,</p>
+      <p style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">L'équipe de Vlad</p>
+      `
+    );
+  } catch (error) {
+    res.status(500).json({ message: "" + error });
   }
 });
 
