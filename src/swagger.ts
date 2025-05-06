@@ -27,7 +27,7 @@ const options: swaggerJsDoc.Options = {
     ],
     servers: [
       {
-        url: `http://localhost:${process.env.PORT || 5000}`,
+        url: `http://localhost:${process.env.PORT}`,
       },
     ],
   },
@@ -37,12 +37,10 @@ const options: swaggerJsDoc.Options = {
 const swaggerDocs = swaggerJsDoc(options);
 
 export default function swaggerDocsMiddleware(app: Express, port: string) {
-  // Swagger page
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-  //swagger.json endpoint
-  app.get("/docs.json", (req: Request, res: Response) => {
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+  app.get("/api/docs.json", (req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerDocs);
   });
-  console.log(`Swagger docs available at http://localhost:${port}/docs`);
+  console.log(`Swagger docs available at http://localhost:${port}/api/docs`);
 }

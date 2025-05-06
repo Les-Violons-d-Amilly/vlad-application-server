@@ -23,6 +23,53 @@ import Student from "../model/Student";
 const router = Router();
 
 router.post(
+  /**
+   * @openapi
+   * /api/auth/register/student:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Register a new student
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - email
+   *               - password
+   *               - firstName
+   *               - lastName
+   *               - sex
+   *               - birthdate
+   *               - group
+   *             properties:
+   *               email:
+   *                 type: string
+   *                 format: email
+   *               password:
+   *                 type: string
+   *               firstName:
+   *                 type: string
+   *               lastName:
+   *                 type: string
+   *               sex:
+   *                 type: string
+   *                 enum: [male, female]
+   *               birthdate:
+   *                 type: string
+   *                 format: date
+   *               group:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: User registered successfully
+   *       400:
+   *         description: Validation error
+   *       500:
+   *         description: Server error
+   */
   "/register/student",
   validateBody(studentRegisterSchema),
   async (req: Request, res: Response): Promise<any> => {
@@ -49,6 +96,33 @@ router.post(
 );
 
 router.post(
+  /**
+   * @openapi
+   * /api/auth/login:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Login a user
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - emailOrIdentity
+   *               - password
+   *             properties:
+   *               emailOrIdentity:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: User logged in successfully
+   *       400:
+   *         description: Validation error
+   */
   "/login",
   validateBody(loginSchema),
   async (req: Request, res: Response) => {
@@ -68,6 +142,30 @@ router.post(
 );
 
 router.post(
+  /**
+   * @openapi
+   * /api/auth/reset-password:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Request a password reset
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - identityOrEmail
+   *             properties:
+   *               identityOrEmail:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Password reset token generated
+   *       404:
+   *         description: User not found
+   */
   "/reset-password",
   validateBody(resetPasswordSchema),
   async (req, res) => {
@@ -135,6 +233,21 @@ router.post(
 );
 
 router.post("/logout", useAuthentication, async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/auth/logout:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Logout a user
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: User logged out successfully
+   *       500:
+   *         description: Server error
+   */
   try {
     req.user.refreshToken = undefined;
     await req.user.save();
@@ -146,6 +259,30 @@ router.post("/logout", useAuthentication, async (req, res): Promise<any> => {
 });
 
 router.post(
+  /**
+   * @openapi
+   * /api/auth/refresh:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Refresh access token
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - refreshToken
+   *             properties:
+   *               refreshToken:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Access token refreshed successfully
+   *       401:
+   *         description: Unauthorized
+   */
   "/refresh",
   validateBody(refreshSchema),
   async (req: Request, res: Response) => {

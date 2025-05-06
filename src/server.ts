@@ -46,7 +46,7 @@ app.use("/auth", auth);
 
 const server = app.listen(process.env.PORT, () => {
   console.log("Server running at PORT:", process.env.PORT);
-  swaggerDocsMiddleware(app, process.env.PORT || "5000");
+  swaggerDocsMiddleware(app, process.env.PORT || "3000");
 });
 
 server.on("error", (error) => {

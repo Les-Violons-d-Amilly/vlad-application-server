@@ -10,7 +10,6 @@ const router = Router();
 
 import rateLimit from "express-rate-limit";
 import { getTeacherById } from "../service/user";
-import sendEmail from "../utils/sendEmail";
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -19,6 +18,19 @@ const limiter = rateLimit({
 router.use(limiter);
 
 router.get("/", async (req: Request, res: Response) => {
+  /**
+   * @openapi
+   * /api/teachers:
+   *   get:
+   *     tags:
+   *       - Teachers
+   *     summary: Get all teachers
+   *     responses:
+   *       200:
+   *         description: Success
+   *       500:
+   *         description: Server error
+   */
   try {
     const teacher = await teacherService.getTeachers();
     res.json(teacher);
@@ -28,6 +40,21 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.get("/@me", async (req: Request, res: Response): Promise<any> => {
+  /**
+   * @openapi
+   * /api/teachers/@me:
+   *   get:
+   *     tags:
+   *       - Teachers
+   *     summary: Get yourself through token
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: Teacher not found
+   *       500:
+   *         description: Server error
+   */
   try {
     const teacher = await getTeacherById(req.user.id);
     if (!teacher) {
@@ -40,6 +67,28 @@ router.get("/@me", async (req: Request, res: Response): Promise<any> => {
 });
 
 router.get("/:id", async (req: Request, res: Response): Promise<any> => {
+  /**
+   * @openapi
+   * /api/teachers/{id}:
+   *   get:
+   *     tags:
+   *       - Teachers
+   *     summary: Get teacher by ID
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the teacher
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: Teacher not found
+   *       500:
+   *         description: Server error
+   */
   try {
     const id = req.params.id;
     const teacher = await getTeacherById(id);

@@ -33,6 +33,21 @@ router.post("/import", upload.single("file"), async (req, res) => {
 });
 
 router.get("/@me", async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/students/@me:
+   *   get:
+   *     tags:
+   *       - Students
+   *     summary: Get yourself through token
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: User not found
+   *       500:
+   *         description: Server error
+   */
   try {
     res.status(200).json(omit(req.user.toJSON(), "hash", "refreshToken"));
   } catch (err) {
@@ -41,6 +56,21 @@ router.get("/@me", async (req, res): Promise<any> => {
 });
 
 router.delete("/@me", async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/students/@me:
+   *   delete:
+   *     tags:
+   *       - Students
+   *     summary: Delete yourself through token
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: User not found
+   *       500:
+   *         description: Server error
+   */
   try {
     await deleteOne(req.user.id);
     res.status(200).json({ message: "User deleted successfully" });
@@ -87,6 +117,21 @@ router.put(
 );
 
 router.delete("/@me/avatar", async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/students/@me/avatar:
+   *   delete:
+   *     tags:
+   *       - Students
+   *     summary: Delete your avatar
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: User not found
+   *       500:
+   *         description: Server error
+   */
   try {
     if (!req.user.avatar) {
       return res.status(400).json({ message: "No avatar to delete" });
@@ -103,6 +148,27 @@ router.delete("/@me/avatar", async (req, res): Promise<any> => {
 });
 
 router.get("/:id", async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/students/{id}:
+   *   get:
+   *     tags:
+   *       - Students
+   *     summary: Get student by ID
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: User not found
+   *       500:
+   *         description: Server error
+   */
   try {
     const user = await getStudentById(req.params.id);
 
