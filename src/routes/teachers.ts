@@ -105,6 +105,35 @@ router.post(
   "/",
   validateBody(createTeacherSchema),
   async (req: Request, res: Response): Promise<void> => {
+    /**
+     * @openapi
+     * /api/teachers:
+     *   post:
+     *     tags:
+     *       - Teachers
+     *     summary: Create a new teacher
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - firstName
+     *               - lastName
+     *               - email
+     *             properties:
+     *               firstName:
+     *                 type: string
+     *               lastName:
+     *                 type: string
+     *               email:
+     *                 type: string
+     *               students:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     * */
     const { firstName, lastName, email, students } = req.body;
     const teacher = new TeacherDocument({
       firstName,
@@ -125,6 +154,41 @@ router.patch(
   "/:id",
   validateBody(updateTeacherSchema),
   async (req: Request, res: Response): Promise<any> => {
+    /**
+     * @openapi
+     * /api/teachers/{id}:
+     *   patch:
+     *     tags:
+     *       - Teachers
+     *     summary: Update a teacher by ID
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: The ID of the teacher
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               firstName:
+     *                 type: string
+     *               lastName:
+     *                 type: string
+     *               email:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Success
+     *       404:
+     *         description: Teacher not found
+     *       500:
+     *         description: Server error
+     */
     try {
       const updatedTeacher = await teacherService.updateTeacher(
         req.params.id,
@@ -143,6 +207,28 @@ router.patch(
 );
 
 router.delete("/:id", async (req: Request, res: Response): Promise<any> => {
+  /**
+   * @openapi
+   * /api/teachers/{id}:
+   *   delete:
+   *     tags:
+   *       - Teachers
+   *     summary: Delete a teacher by ID
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the teacher
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: Teacher not found
+   *       500:
+   *         description: Server error
+   */
   try {
     const deleted = await teacherService.deleteTeacher(req.params.id);
     if (!deleted) {

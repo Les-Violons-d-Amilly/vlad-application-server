@@ -156,9 +156,9 @@ router.post(
    *           schema:
    *             type: object
    *             required:
-   *               - identityOrEmail
+   *               - identity
    *             properties:
-   *               identityOrEmail:
+   *               identity:
    *                 type: string
    *     responses:
    *       200:
