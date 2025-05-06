@@ -13,6 +13,31 @@ const router = Router();
 const upload = multer();
 
 router.post("/import", upload.single("file"), async (req, res) => {
+  /**
+   * @openapi
+   * /api/students/import:
+   *   post:
+   *     tags:
+   *       - Students
+   *     summary: Import students from CSV file
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               file:
+   *                 type: string
+   *                 format: binary
+   *     responses:
+   *       201:
+   *         description: Students registered successfully
+   *       400:
+   *         description: No file uploaded
+   *       500:
+   *         description: Error importing CSV
+   */
   if (!req.file) {
     res.status(400).json({ message: "No file uploaded" });
     return;
@@ -83,6 +108,31 @@ router.put(
   "/@me/avatar",
   upload.single("avatar"),
   async (req, res): Promise<any> => {
+    /**
+     * @openapi
+     * /api/students/@me/avatar:
+     *   put:
+     *     tags:
+     *       - Students
+     *     summary: Update your avatar
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         multipart/form-data:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               avatar:
+     *                 type: string
+     *                 format: binary
+     *     responses:
+     *       200:
+     *         description: Avatar updated successfully
+     *       400:
+     *         description: Invalid file type or no file uploaded
+     *       500:
+     *         description: Server error while processing the image
+     */
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
