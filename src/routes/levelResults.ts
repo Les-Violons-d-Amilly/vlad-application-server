@@ -3,6 +3,8 @@ import LevelResultDocument from "../model/LevelResult";
 import * as levelResultService from "../service/levelResult";
 import Joi from "joi";
 import rateLimit from "express-rate-limit";
+import { validateBody } from "../utils/joiValidation";
+import { updateLevelResultSchema } from "../validation/levelResultSchemas";
 
 const router = Router();
 
@@ -12,15 +14,6 @@ const limiter = rateLimit({
   max: 100,
 });
 router.use(limiter);
-
-const updateLevelResultSchema = Joi.object({
-  name: Joi.string().optional(),
-  globalScore: Joi.number().optional(),
-  noteReading: Joi.string().optional(),
-  numberOfErrors: Joi.number().optional(),
-  reactionTime: Joi.number().optional(),
-  errorDetails: Joi.array().items(Joi.string()).optional(),
-});
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -74,27 +67,26 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-router.patch("/:id", async (req: Request, res: Response): Promise<any> => {
-  try {
-    const { error, value } = updateLevelResultSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+router.patch(
+  "/:id",
+  validateBody(updateLevelResultSchema),
+  async (req: Request, res: Response): Promise<any> => {
+    try {
+      const updatedLevelResult = await levelResultService.updateLevelResult(
+        req.params.id,
+        req.body
+      );
+
+      if (!updatedLevelResult) {
+        return res.status(404).json({ message: "LevelResult not found" });
+      }
+
+      res.json(updatedLevelResult);
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
     }
-
-    const updatedLevelResult = await levelResultService.updateLevelResult(
-      req.params.id,
-      value
-    );
-
-    if (!updatedLevelResult) {
-      return res.status(404).json({ message: "LevelResult not found" });
-    }
-
-    res.json(updatedLevelResult);
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
   }
-});
+);
 
 router.delete("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
