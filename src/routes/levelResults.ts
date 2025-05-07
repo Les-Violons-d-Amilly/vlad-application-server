@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import LevelResultDocument from "../model/LevelResult";
 import * as levelResultService from "../service/levelResult";
-import Joi from "joi";
 import rateLimit from "express-rate-limit";
 import { validateBody } from "../utils/joiValidation";
 import { updateLevelResultSchema } from "../validation/levelResultSchemas";
@@ -16,6 +15,19 @@ const limiter = rateLimit({
 router.use(limiter);
 
 router.get("/", async (req: Request, res: Response) => {
+  /**
+   * @openapi
+   * /api/levelResults:
+   *   get:
+   *     tags:
+   *       - LevelResults
+   *     summary: Get all level results
+   *     responses:
+   *       200:
+   *         description: Success
+   *       500:
+   *         description: Server error
+   */
   try {
     const levelResults = await levelResultService.getLevelResults();
     res.json(levelResults);
@@ -25,6 +37,28 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.get("/:id", async (req: Request, res: Response): Promise<any> => {
+  /**
+   * @openapi
+   * /api/levelResults/{id}:
+   *   get:
+   *     tags:
+   *       - LevelResults
+   *     summary: Get a level result by ID
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: ID of the level result
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: LevelResult not found
+   *       500:
+   *         description: Server error
+   */
   try {
     const id = req.params.id;
     const levelResult = await levelResultService.getLevelResultById(id);
@@ -38,6 +72,38 @@ router.get("/:id", async (req: Request, res: Response): Promise<any> => {
 });
 
 router.post("/", async (req: Request, res: Response) => {
+  /**
+   * @openapi
+   * /api/levelResults:
+   *   post:
+   *     tags:
+   *       - LevelResults
+   *     summary: Create a new level result
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               globalScore:
+   *                 type: number
+   *               noteReading:
+   *                 type: number
+   *               numberOfErrors:
+   *                 type: number
+   *               reactionTime:
+   *                 type: number
+   *               errorDetails:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *     responses:
+   *       201:
+   *         description: LevelResult created successfully
+   */
   const {
     name,
     globalScore,
@@ -71,6 +137,42 @@ router.patch(
   "/:id",
   validateBody(updateLevelResultSchema),
   async (req: Request, res: Response): Promise<any> => {
+    /**
+     * @openapi
+     * /api/levelResults/{id}:
+     *   patch:
+     *     tags:
+     *       - LevelResults
+     *     summary: Update a level result by ID
+     *     parameters:
+     *       - name: id
+     *         in: path
+     *         required: true
+     *         description: ID of the level result
+     *         schema:
+     *           type: string
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               name:
+     *                 type: string
+     *               globalScore:
+     *                 type: number
+     *               noteReading:
+     *                 type: number
+     *               numberOfErrors:
+     *                 type: number
+     *               reactionTime:
+     *                 type: number
+     *               errorDetails:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     */
     try {
       const updatedLevelResult = await levelResultService.updateLevelResult(
         req.params.id,
@@ -89,6 +191,26 @@ router.patch(
 );
 
 router.delete("/:id", async (req: Request, res: Response): Promise<any> => {
+  /**
+   * @openapi
+   * /api/levelResults/{id}:
+   *   delete:
+   *     tags:
+   *       - LevelResults
+   *     summary: Delete a level result by ID
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: ID of the level result
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: LevelResult deleted successfully
+   *       404:
+   *         description: LevelResult not found
+   */
   try {
     const deleted = await levelResultService.deleteLevelResult(req.params.id);
     if (!deleted) {
