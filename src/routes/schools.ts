@@ -156,6 +156,30 @@ router.post(
     { name: "students", maxCount: 1 },
   ]),
   async (req, res) => {
+    /**
+     * @openapi
+     * /api/schools:
+     *   post:
+     *     tags:
+     *       - Schools
+     *     summary: Create a new school
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         multipart/form-data:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               data:
+     *                 type: string
+     *                 format: json
+     *               teachers:
+     *                 type: string
+     *                 format: binary
+     *               students:
+     *                 type: string
+     *                 format: binary
+     */
     const { error, value } = Joi.object({
       siret: Joi.string().required().length(14),
       name: Joi.string().min(3).max(100).required(),
@@ -276,6 +300,25 @@ router.post(
   "/payment/webhook",
   express.raw({ type: "application/json" }),
   async (req, res) => {
+    /**
+     * @openapi
+     * /api/schools/payment/webhook:
+     *   post:
+     *     tags:
+     *       - Schools
+     *     summary: Stripe webhook for payment events
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               id:
+     *                 type: string
+     *               object:
+     *                 type: string
+     */
     let event: Stripe.Event = req.body;
 
     switch (event.type) {
@@ -465,6 +508,24 @@ router.post(
 );
 
 router.get("/validate/email/:email", async (req, res) => {
+  /**
+   * @openapi
+   * /api/schools/validate/email/{email}:
+   *   get:
+   *     tags:
+   *       - Schools
+   *     summary: Validate an email address
+   *     parameters:
+   *       - name: email
+   *         in: path
+   *         required: true
+   *         description: Email address to validate
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Email sent successfully
+   */
   if (!req.params.email) {
     res.status(400).json({ error: "Email is required" });
     return;
@@ -506,6 +567,30 @@ router.get("/validate/email/:email", async (req, res) => {
 });
 
 router.get("/validate/email/:email/:code", async (req, res) => {
+  /**
+   * @openapi
+   * /api/schools/validate/email/{email}/{code}:
+   *   get:
+   *     tags:
+   *       - Schools
+   *     summary: Validate an email address with a code
+   *     parameters:
+   *       - name: email
+   *         in: path
+   *         required: true
+   *         description: Email address to validate
+   *         schema:
+   *           type: string
+   *       - name: code
+   *         in: path
+   *         required: true
+   *         description: Validation code sent to the email address
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Email validated successfully
+   */
   if (!req.params.email || !req.params.code) {
     res.status(400).json({ error: "Email and code are required" });
     return;
@@ -529,6 +614,24 @@ router.get("/validate/email/:email/:code", async (req, res) => {
 });
 
 router.get("/validate/siret/:siret", async (req, res) => {
+  /**
+   * @openapi
+   * /api/schools/validate/siret/{siret}:
+   *   get:
+   *     tags:
+   *       - Schools
+   *     summary: Validate a SIRET number
+   *     parameters:
+   *       - name: siret
+   *         in: path
+   *         required: true
+   *         description: SIRET number to validate
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: SIRET number is valid
+   */
   if (!req.params.siret) {
     res.status(400).json({ error: "SIRET number is required" });
     return;
@@ -586,6 +689,27 @@ router.get("/validate/siret/:siret", async (req, res) => {
 });
 
 router.post("/preview/students", upload.single("file"), async (req, res) => {
+  /**
+   * @openapi
+   * /api/schools/preview/students:
+   *   post:
+   *     tags:
+   *       - Schools
+   *     summary: Preview students from a CSV file
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               file:
+   *                 type: string
+   *                 format: binary
+   *     responses:
+   *       200:
+   *         description: Parsed students successfully
+   */
   if (!req.file) {
     res.status(400).json({ message: "No file uploaded" });
     return;
@@ -605,6 +729,27 @@ router.post("/preview/students", upload.single("file"), async (req, res) => {
 });
 
 router.post("/preview/teachers", upload.single("file"), async (req, res) => {
+  /**
+   * @openapi
+   * /api/schools/preview/teachers:
+   *   post:
+   *     tags:
+   *       - Schools
+   *     summary: Preview teachers from a CSV file
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               file:
+   *                 type: string
+   *                 format: binary
+   *     responses:
+   *       200:
+   *         description: Parsed teachers successfully
+   */
   if (!req.file) {
     res.status(400).json({ message: "No file uploaded" });
     return;
