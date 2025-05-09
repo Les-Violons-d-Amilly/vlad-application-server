@@ -110,10 +110,10 @@ router.post(
    *           schema:
    *             type: object
    *             required:
-   *               - emailOrIdentity
+   *               - identity
    *               - password
    *             properties:
-   *               emailOrIdentity:
+   *               identity:
    *                 type: string
    *               password:
    *                 type: string

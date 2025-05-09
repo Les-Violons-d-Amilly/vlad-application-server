@@ -9,11 +9,6 @@ export enum PermissionLevel {
   Admin = 2,
 }
 
-export type CustomRequest = Request & {
-  user: UserDocument;
-  permissionLevel: PermissionLevel;
-};
-
 export type DecodedToken = {
   id: string;
   permissionLevel: PermissionLevel;
@@ -41,8 +36,8 @@ export const useAuthentication: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    (req as CustomRequest).user = user;
-    (req as CustomRequest).permissionLevel = decoded.permissionLevel;
+    req.user = user;
+    req.permissionLevel = decoded.permissionLevel;
 
     next();
   } catch (error) {
