@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import Joi from "joi";
+import { createSchoolSchema } from "../validation/schoolSchemas";
 import multer from "multer";
 import Stripe from "stripe";
 import calculatePrice from "../utils/calculatePrice";
@@ -180,13 +180,9 @@ router.post(
      *                 type: string
      *                 format: binary
      */
-    const { error, value } = Joi.object({
-      siret: Joi.string().required().length(14),
-      name: Joi.string().min(3).max(100).required(),
-      email: Joi.string().email().required(),
-      managedBy: Joi.array().items(Joi.number()).required(),
-      paymentMethodId: Joi.string().required(),
-    }).validate(JSON.parse(req.body.data));
+    const { error, value } = createSchoolSchema.validate(
+      JSON.parse(req.body.data)
+    );
 
     if (error) {
       res.status(400).json({ error: error.details[0].message });
