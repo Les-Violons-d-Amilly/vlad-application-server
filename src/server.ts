@@ -7,6 +7,7 @@ import swaggerDocsMiddleware from "./swagger";
 import mongoose from "mongoose";
 import cors from "cors";
 import path from "path";
+import webSocket from "./webSocket";
 
 const uri = process.env.MONGO_URI || "mongodb://localhost:27017/VLAD-db";
 
@@ -47,6 +48,7 @@ app.use("/auth", auth);
 const server = app.listen(process.env.PORT, () => {
   console.log("Server running at PORT:", process.env.PORT);
   swaggerDocsMiddleware(app, process.env.PORT || "3000");
+  webSocket(server);
 });
 
 server.on("error", (error) => {
