@@ -21,7 +21,7 @@ router.get("/redirect", async (req, res) => {
     res.status(400).json({ message: "Missing parameters" });
     return;
   }
-  const student = await Student.findById(user_id);
+  const student = await Student.findOne({ _id: { $eq: user_id } });
   const onMobile = req.headers["user-agent"]?.includes("Mobile") ?? false;
 
   if (!student) {
