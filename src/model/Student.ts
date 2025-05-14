@@ -46,7 +46,9 @@ const StudentSchema = new Schema<StudentDocument>(
     versionKey: false,
     id: true,
     methods: {
-      register: async function () {},
+      verifyPassword: async function (password: string): Promise<boolean> {
+        return await bcrypt.compare(password, this.hash);
+      },
     },
   }
 );

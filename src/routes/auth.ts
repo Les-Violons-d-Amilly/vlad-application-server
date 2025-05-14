@@ -19,6 +19,7 @@ import {
   teacherRegisterSchema,
 } from "../validation/authSchemas";
 import Student from "../model/Student";
+import sendEmail from "../utils/sendEmail";
 
 const router = Router();
 
@@ -156,9 +157,9 @@ router.post(
    *           schema:
    *             type: object
    *             required:
-   *               - identity
+   *               - identityOrEmail
    *             properties:
-   *               identity:
+   *               identityOrEmail:
    *                 type: string
    *     responses:
    *       200:
@@ -185,9 +186,29 @@ router.post(
       expiresIn: "10m",
     });
 
+    await sendEmail(
+      user.email,
+      "Réinitialisation de mot de passe",
+      /* HTML */ `
+        <h1>Réinitialisation de mot de passe</h1>
+        <p>Bonjour ${user.firstName},</p>
+        <p>
+          Vous avez demandé une réinitialisation de mot de passe. Cliquez sur le
+          lien ci-dessous pour réinitialiser votre mot de passe :
+        </p>
+        <a href="http://localhost:3000/reset-password?resetToken=${token}"
+          >Réinitialiser le mot de passe</a
+        >
+        <p>
+          Si vous n'avez pas demandé cette réinitialisation, ignorez cet e-mail.
+        </p>
+        <p>Merci,</p>
+        <p>L'équipe de VLAD</p>
+      `
+    );
+
     res.status(200).json({
       message: "Password reset token generated",
-      token,
     });
   }
 );
@@ -208,7 +229,7 @@ router.post(
   validateBody(newPasswordSchema),
   async (req, res) => {
     const { token } = req.params;
-    const { password } = req.body;
+    const { oldPassword, newPassword } = req.body;
 
     try {
       const decoded = jwt.verify(
@@ -222,7 +243,14 @@ router.post(
         return;
       }
 
-      user.hash = password;
+      const oldPasswordValid = await user.verifyPassword(oldPassword);
+
+      if (!oldPasswordValid) {
+        res.status(400).json({ message: "Old password is incorrect" });
+        return;
+      }
+
+      user.hash = newPassword;
       user.save();
 
       res.status(200).json({ message: "Password reset successfully" });

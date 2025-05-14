@@ -19,6 +19,7 @@ type UserDocument = Document & {
   lastSeen: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  verifyPassword: (password: string) => Promise<boolean>;
 };
 
 export default UserDocument;

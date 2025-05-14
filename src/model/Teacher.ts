@@ -19,7 +19,16 @@ const TeacherSchema = new Schema<UserDocument>(
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
-  { timestamps: true, versionKey: false, id: true }
+  {
+    timestamps: true,
+    versionKey: false,
+    id: true,
+    methods: {
+      verifyPassword: async function (password: string): Promise<boolean> {
+        return await bcrypt.compare(password, this.hash);
+      },
+    },
+  }
 );
 
 TeacherSchema.pre("save", async function (next) {
