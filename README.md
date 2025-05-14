@@ -1,39 +1,26 @@
-# BACKEND REST API
+## Getting Started
+
+A backend API built with **Node.js**, **TypeScript**, **Express**, and **WebSocket**, using **MongoDB** for DB.
+
+First, run the development server:
+
+```bash
+npm run dev
+```
 
 ## **Tools**
 
-- Language : _TypeScript_
-- Framework : _express_
-- Database : _MongoDB_
+- **Language:** TypeScript
+- **Framework:** Express.js
+- **Database:** MongoDB (via Mongoose)
+- **WebSocket:** Socket.IO
+- **Validation:** Joi
+- **API Docs:** Swagger (OpenAPI)
 
 ## DataBase Structure
 
 _Note: This structure is subject to change in future updates._
 
-Teacher -> Students -> Exercises
-
-**Teacher**
-
-- firstName: string;
-- lastName: string;
-- email: string;
-- student?: StudentDocument[];
-
-**Student**
-
-- firstName: string;
-- lastName: string;
-- email: string;
-- age: number;
-- sex: string;
-- exercises?: ExerciseDocument[];
-
-**Exercise**
-
-- name: string;
-- globalScore?: number;
-- noteReading?: string;
-- numberOfErrors?: number;
-- reactionTime?: number;
-- errorDetails?: string[];
-- date: Date;-
+User -> Teacher
+User -> Students
+LevelResult
