@@ -187,7 +187,7 @@ router.post(
       expiresIn: "10m",
     });
 
-    await sendEmail(
+    const sent = await sendEmail(
       user.email,
       "Réinitialisation de mot de passe",
       /* HTML */ `
@@ -207,6 +207,11 @@ router.post(
         <p>L'équipe de VLAD</p>
       `
     );
+
+    if (!sent) {
+      res.status(401).json({ message: "Failed to send email" });
+      return;
+    }
 
     res.status(200).json({
       message: "Password reset token generated",
