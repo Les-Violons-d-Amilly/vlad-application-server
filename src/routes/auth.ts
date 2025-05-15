@@ -173,7 +173,7 @@ router.post(
     const user = await Student.findOne({
       $or: [
         { email: req.body.identityOrEmail },
-        { _id: req.body.identityOrEmail },
+        { identity: req.body.identityOrEmail },
       ],
     });
 
