@@ -20,6 +20,7 @@ import {
 } from "../validation/authSchemas";
 import Student from "../model/Student";
 import sendEmail from "../utils/sendEmail";
+import Teacher from "../model/Teacher";
 
 const router = Router();
 
@@ -170,7 +171,7 @@ router.post(
   "/reset-password",
   validateBody(resetPasswordSchema),
   async (req, res) => {
-    const user = await Student.findOne({
+    const user = await Teacher.findOne({
       $or: [
         { email: req.body.identityOrEmail },
         { identity: req.body.identityOrEmail },
