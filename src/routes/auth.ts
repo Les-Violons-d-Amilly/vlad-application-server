@@ -189,22 +189,41 @@ router.post(
 
     const sent = await sendEmail(
       user.email,
-      "Réinitialisation de mot de passe",
+      "Email de réinitialisation",
       /* HTML */ `
-        <h1>Réinitialisation de mot de passe</h1>
         <p>Bonjour ${user.firstName},</p>
-        <p>
-          Vous avez demandé une réinitialisation de mot de passe. Cliquez sur le
-          lien ci-dessous pour réinitialiser votre mot de passe :
+        <p
+          style="font-family: Arial, sans-serif; font-size: 16px; color: #333;"
+        >
+          Vous avez demandé une réinitialisation de mot de passe.
         </p>
-        <a href="http://localhost:3000/reset-password?resetToken=${token}"
+        <p
+          style="font-family: Arial, sans-serif; font-size: 16px; color: #333;"
+        >
+          Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :
+        </p>
+        <a
+          href="http://localhost:3000/reset-password?resetToken=${token}"
+          style="color: #000055; text-decoration: none;"
           >Réinitialiser le mot de passe</a
         >
-        <p>
+        <p
+          style="font-family: Arial, sans-serif; font-size: 16px; color: #333;"
+        >
           Si vous n'avez pas demandé cette réinitialisation, ignorez cet e-mail.
         </p>
-        <p>Merci,</p>
-        <p>L'équipe de VLAD</p>
+        <br />
+        <br />
+        <p
+          style="font-family: Arial, sans-serif; font-size: 16px; color: #333;"
+        >
+          Merci,
+        </p>
+        <p
+          style="font-family: Arial, sans-serif; font-size: 16px; color: #333;"
+        >
+          L'équipe de VLAD
+        </p>
       `
     );
 
@@ -235,28 +254,21 @@ router.post(
   validateBody(newPasswordSchema),
   async (req, res) => {
     const { token } = req.params;
-    const { oldPassword, newPassword } = req.body;
+    const { password } = req.body;
 
     try {
       const decoded = jwt.verify(
         token,
         process.env.JWT_SECRET!
       ) as DecodedToken;
-      const user = await Student.findById(decoded.id);
+      const user = await Teacher.findById(decoded.id);
 
       if (!user) {
         res.status(404).json({ message: "User not found" });
         return;
       }
 
-      const oldPasswordValid = await user.verifyPassword(oldPassword);
-
-      if (!oldPasswordValid) {
-        res.status(400).json({ message: "Old password is incorrect" });
-        return;
-      }
-
-      user.hash = newPassword;
+      user.hash = password;
       user.save();
 
       res.status(200).json({ message: "Password reset successfully" });
