@@ -47,3 +47,16 @@ export const newPasswordSchema = Joi.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
     .required(),
 });
+
+export const changePasswordSchema = Joi.object({
+  oldPassword: Joi.string()
+    .min(8)
+    .max(64)
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
+    .optional(),
+  newPassword: Joi.string()
+    .min(8)
+    .max(64)
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/)
+    .required(),
+});

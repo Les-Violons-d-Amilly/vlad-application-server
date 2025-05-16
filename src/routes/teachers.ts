@@ -10,6 +10,11 @@ const router = Router();
 
 import rateLimit from "express-rate-limit";
 import { getTeacherById } from "../service/user";
+import {
+  changePasswordSchema,
+  resetPasswordSchema,
+} from "../validation/authSchemas";
+import { compare } from "bcrypt";
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -239,5 +244,38 @@ router.delete("/:id", async (req: Request, res: Response): Promise<any> => {
     res.status(500).json({ message: "" + error });
   }
 });
+
+router.post(
+  "/@me/change-password",
+  validateBody(changePasswordSchema),
+  async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { newPassword } = req.body;
+      const oldPassword = req.body.oldPassword;
+
+      if (!req.user.provisoryPassword && !oldPassword) {
+        return res.status(400).json({
+          message: "You must provide your old password to change your password",
+        });
+      }
+
+      if (
+        !req.user.provisoryPassword &&
+        !(await req.user.verifyPassword(oldPassword))
+      ) {
+        return res.status(401).json({ message: "Invalid password" });
+      }
+
+      req.user.hash = newPassword;
+      req.user.provisoryPassword = false;
+      req.user.save();
+
+      return res.status(200).json({ message: "Password changed" });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 export default router;

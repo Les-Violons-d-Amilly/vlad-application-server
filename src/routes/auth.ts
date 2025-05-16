@@ -269,6 +269,7 @@ router.post(
       }
 
       user.hash = password;
+      user.provisoryPassword = false;
       user.save();
 
       res.status(200).json({ message: "Password reset successfully" });
