@@ -101,7 +101,7 @@ router.post("/", async (req: Request, res: Response) => {
    *                 items:
    *                   type: string
    *     responses:
-   *       201:
+   *       200:
    *         description: LevelResult created successfully
    */
   const {
@@ -127,7 +127,7 @@ router.post("/", async (req: Request, res: Response) => {
     const savedLevelResult = await levelResultService.saveLevelResult(
       levelResult
     );
-    res.status(201).json(savedLevelResult);
+    res.status(200).json(savedLevelResult);
   } catch (error) {
     res.status(400).json({ message: "Error creating an LevelResult" });
   }

@@ -2,6 +2,7 @@ import { model, Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import type UserDocument from "./User";
 import { Sex } from "./User";
+import { LevelResultDocument } from "./LevelResult";
 
 type DurationPerDate = {
   date: string;
@@ -12,6 +13,7 @@ export interface StudentDocument extends UserDocument {
   birthdate: Date;
   group: string;
   timeOnApp: DurationPerDate[];
+  levelResults: LevelResultDocument[];
 }
 
 const StudentSchema = new Schema<StudentDocument>(
@@ -29,6 +31,13 @@ const StudentSchema = new Schema<StudentDocument>(
     group: { type: String, required: false },
     online: { type: Boolean, default: false },
     lastSeen: { type: Date, default: null },
+    levelResults: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "LevelResult",
+        required: false,
+      },
+    ],
     timeOnApp: {
       type: [
         {

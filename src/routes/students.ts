@@ -8,6 +8,11 @@ import fs from "fs";
 import sharp from "sharp";
 import { PermissionLevel } from "../utils/authentication";
 import { parseStudentCsv } from "../utils/parseCsv";
+import {
+  addLevelResultToStudent,
+  getLevelResultsByStudentId,
+  deleteLevelResultFromStudent,
+} from "../service/student";
 
 const router = Router();
 const upload = multer();
@@ -77,6 +82,103 @@ router.get("/@me", async (req, res): Promise<any> => {
     res.status(200).json(omit(req.user.toJSON(), "hash", "refreshToken"));
   } catch (err) {
     res.status(401).json({ message: "Unauthorized" });
+  }
+});
+
+router.put("/@me/levelResult", async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/students/@me/levelResult:
+   *   put:
+   *     tags:
+   *       - Students
+   *     summary: Add level result to yourself through token
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               levelResultId:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Level result saved successfully
+   *       400:
+   *         description: Missing levelResultId
+   *       500:
+   *         description: Server error
+   */
+  const { levelResultId } = req.body;
+
+  if (!levelResultId) {
+    return res.status(400).json({ message: "Missing levelResultId" });
+  }
+
+  try {
+    const newResult = await addLevelResultToStudent(req.user.id, levelResultId);
+    res.status(200).json({ message: "Level result saved", result: newResult });
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+router.get("/@me/levelResult", async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/students/@me/levelResult:
+   *   get:
+   *     tags:
+   *       - Students
+   *     summary: Get your level results through token
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: User not found
+   *       500:
+   *         description: Server error
+   */
+  const LevelResults = await getLevelResultsByStudentId(req.user.id);
+  try {
+    res.status(200).json(LevelResults);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.delete("/@me/levelResult/:id", async (req, res): Promise<any> => {
+  /**
+   * @openapi
+   * /api/students/@me/levelResult/{id}:
+   *   delete:
+   *     tags:
+   *       - Students
+   *     summary: Delete your level result through token
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Level result deleted successfully
+   *       404:
+   *         description: User or level result not found
+   *       500:
+   *         description: Server error
+   */
+  try {
+    const levelResultId = req.params.id;
+    const studentId = req.user.id;
+
+    await deleteLevelResultFromStudent(studentId, levelResultId);
+
+    res.status(200).json({ message: "Level result deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
