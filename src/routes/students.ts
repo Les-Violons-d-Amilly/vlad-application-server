@@ -3,6 +3,7 @@ import { Router } from "express";
 import omit from "../utils/omit";
 import { deleteOne, getStudentById, registerManyUsers } from "../service/user";
 import multer from "multer";
+import mongoose from "mongoose";
 import path from "path";
 import fs from "fs";
 import sharp from "sharp";
@@ -175,7 +176,9 @@ router.delete("/@me/levelResult/:id", async (req, res): Promise<any> => {
     const studentId = req.user.id;
 
     await deleteLevelResultFromStudent(studentId, levelResultId);
-
+    if (!mongoose.isValidObjectId(levelResultId)) {
+      return res.status(400).json({ message: "Invalid levelResultId format" });
+    }
     res.status(200).json({ message: "Level result deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
