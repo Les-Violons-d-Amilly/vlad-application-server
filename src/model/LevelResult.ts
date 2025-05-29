@@ -2,6 +2,7 @@ import { Schema, Document, Date, model } from "mongoose";
 
 export interface LevelResultDocument extends Document {
   name: string;
+  category: string;
   globalScore?: number;
   noteReading?: string;
   numberOfErrors?: number;
@@ -14,6 +15,7 @@ export interface LevelResultDocument extends Document {
 const LevelResultSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
+    category: { type: String, required: true },
     globalScore: { type: Number, required: false },
     noteReading: { type: String, required: false },
     numberOfErrors: { type: Number, required: false },

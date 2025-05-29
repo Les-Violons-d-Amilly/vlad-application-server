@@ -88,6 +88,8 @@ router.post("/", async (req: Request, res: Response) => {
    *             properties:
    *               name:
    *                 type: string
+   *               category:
+   *                 type: string
    *               globalScore:
    *                 type: number
    *               noteReading:
@@ -106,6 +108,7 @@ router.post("/", async (req: Request, res: Response) => {
    */
   const {
     name,
+    category,
     globalScore,
     noteReading,
     numberOfErrors,
@@ -115,6 +118,7 @@ router.post("/", async (req: Request, res: Response) => {
 
   const levelResult = new LevelResultDocument({
     name,
+    category,
     globalScore,
     noteReading,
     numberOfErrors,
@@ -159,6 +163,8 @@ router.patch(
      *             type: object
      *             properties:
      *               name:
+     *                 type: string
+     *               category:
      *                 type: string
      *               globalScore:
      *                 type: number
