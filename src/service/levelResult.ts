@@ -57,3 +57,14 @@ export async function deleteLevelResult(
     throw new Error("Error deleting levelResult: " + error);
   }
 }
+
+export async function getLevelResultsByCategory(
+  category: string
+): Promise<LevelResultDocument[]> {
+  try {
+    const levelResults = await LevelResult.find({ category });
+    return levelResults;
+  } catch (error: any) {
+    throw new Error("Error fetching levelResults by category: " + error);
+  }
+}

@@ -71,6 +71,46 @@ router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   }
 });
 
+router.get(
+  "/category/:category",
+  async (req: Request, res: Response): Promise<any> => {
+    /**
+     * @openapi
+     * /api/levelResults/category/{category}:
+     *   get:
+     *     tags:
+     *       - LevelResults
+     *     summary: Get level results by category
+     *     parameters:
+     *       - name: category
+     *         in: path
+     *         required: true
+     *         description: Category of the level results
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Success
+     *       404:
+     *         description: LevelResults not found for the category
+     *       500:
+     *         description: Server error
+     */
+    const category = req.params.category;
+    try {
+      const levelResults = await levelResultService.getLevelResultsByCategory(
+        category
+      );
+      if (!levelResults || levelResults.length === 0) {
+        return res.status(404).send("LevelResults not found for the category");
+      }
+      res.json(levelResults);
+    } catch (error) {
+      res.status(500).send("Server error");
+    }
+  }
+);
+
 router.post("/", async (req: Request, res: Response) => {
   /**
    * @openapi
