@@ -1,6 +1,7 @@
 import Student, { StudentDocument } from "../model/Student";
 import { parseCSV } from "./csv";
 import LevelResult, { LevelResultDocument } from "../model/LevelResult";
+import School from "../model/School";
 
 export async function getStudents(): Promise<StudentDocument[]> {
   try {
@@ -162,4 +163,16 @@ export async function deleteLevelResultFromStudent(
       "Error deleting level result from student: " + error.message
     );
   }
+}
+
+export async function getStudentsByTeacherId(teacherId: string) {
+  const school = await School.findOne({ teachers: teacherId });
+  if (!school) {
+    throw new Error("School not found for this teacher");
+  }
+  const students = await Student.find({
+    _id: { $in: school.students },
+  }).populate("levelResults");
+
+  return students;
 }

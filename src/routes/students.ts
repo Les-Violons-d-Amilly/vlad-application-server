@@ -13,6 +13,7 @@ import {
   addLevelResultToStudent,
   getLevelResultsByStudentId,
   deleteLevelResultFromStudent,
+  getStudentsByTeacherId,
 } from "../service/student";
 
 const router = Router();
@@ -83,6 +84,43 @@ router.get("/@me", async (req, res): Promise<any> => {
     res.status(200).json(omit(req.user.toJSON(), "hash", "refreshToken"));
   } catch (err) {
     res.status(401).json({ message: "Unauthorized" });
+  }
+});
+
+router.get("/fromTeacher/:id", async (req, res) => {
+  /**
+   * @openapi
+   * /api/students/fromTeacher/{id}:
+   *   get:
+   *     tags:
+   *       - Students
+   *     summary: Get students from the teacher by ID
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Teacher ID
+   *     responses:
+   *       200:
+   *         description: Success
+   *       404:
+   *         description: No students found for this teacher
+   *       500:
+   *         description: Server error
+   */
+  try {
+    const teacherId = req.params.id;
+    const students = await getStudentsByTeacherId(teacherId);
+    if (!students || students.length === 0) {
+      res.status(404).json({ message: "No students found for this teacher" });
+      return;
+    }
+    res.status(200).json(students);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message || "Server error" });
   }
 });
 
