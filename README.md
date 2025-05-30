@@ -16,10 +16,6 @@ npm install
 npm run dev
 ```
 
-The server will start and print a Swagger URL in the terminal where you can explore and test the available routes.
-
----
-
 ## Tools
 
 - **Language:** TypeScript
