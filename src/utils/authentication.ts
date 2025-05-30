@@ -1,7 +1,6 @@
-import { Request, RequestHandler } from "express";
+import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { getStudentById, getTeacherById } from "../service/user";
-import UserDocument from "../model/User";
 
 export enum PermissionLevel {
   Student = 0,
