@@ -249,6 +249,34 @@ router.post(
   "/@me/change-password",
   validateBody(changePasswordSchema),
   async (req: Request, res: Response): Promise<any> => {
+    /**
+     * @openapi
+     * /api/teachers/@me/change-password:
+     *  post:
+     *   tags:
+     *    - Teachers
+     *  summary: Change your password
+     *  requestBody:
+     *   required: true
+     *  content:
+     *    application/json:
+     *     schema:
+     *      type: object
+     *     properties:
+     *      newPassword:
+     *        type: string
+     *     oldPassword:
+     *       type: string
+     *  responses:
+     *   200:
+     *    description: Password changed successfully
+     *  400:
+     *   description: Bad request, old password is required if not using a provisional password
+     *  401:
+     *   description: Unauthorized, invalid old password
+     *  500:
+     *   description: Server error
+     * */
     try {
       const { newPassword } = req.body;
       const oldPassword = req.body.oldPassword;
