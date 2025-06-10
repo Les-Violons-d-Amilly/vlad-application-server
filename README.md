@@ -29,9 +29,7 @@ npm run dev
 
 ## Database Overview
 
-> _Note: This is a simplified view of the database structure._
-
-![Simplified Diagram](public/assets/diagrams/Simplifiend-DataBase-Diagram.png)
+![ Diagram](public/assets/diagrams/DataBase-Diagram.png)
 
 ---
 
