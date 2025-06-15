@@ -85,6 +85,38 @@ router.post(
 );
 
 router.post(
+  /**
+   * @openapi
+   * /api/auth/register/teacher:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Register a new teacher
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - email
+   *               - password
+   *               - firstName
+   *               - lastName
+   *             properties:
+   *               email:
+   *                 type: string
+   *                 format: email
+   *               password:
+   *                 type: string
+   *               firstName:
+   *                 type: string
+   *               lastName:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: User registered successfully
+   */
   "/register/teacher",
   validateBody(teacherRegisterSchema),
   async (req: Request, res: Response): Promise<any> => {
@@ -239,6 +271,26 @@ router.post(
 );
 
 router.get("/reset-password/:token", (req, res) => {
+  /**
+   * @openapi
+   * /api/auth/reset-password/{token}:
+   *   get:
+   *     tags:
+   *       - Auth
+   *     summary: Validate a password reset token
+   *     parameters:
+   *       - name: token
+   *         in: path
+   *         required: true
+   *         description: Password reset token
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Token is valid
+   *       400:
+   *         description: Invalid or expired token
+   */
   const { token } = req.params;
 
   try {
@@ -253,6 +305,37 @@ router.post(
   "/reset-password/:token",
   validateBody(newPasswordSchema),
   async (req, res) => {
+    /**
+     * @openapi
+     * /api/auth/reset-password/{token}:
+     *   post:
+     *     tags:
+     *       - Auth
+     *     summary: Reset password using a token
+     *     parameters:
+     *       - name: token
+     *         in: path
+     *         required: true
+     *         description: Password reset token
+     *         schema:
+     *           type: string
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - password
+     *             properties:
+     *               password:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Password reset successfully
+     *       400:
+     *         description: Invalid or expired token
+     */
     const { token } = req.params;
     const { password } = req.body;
 
